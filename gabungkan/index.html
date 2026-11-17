@@ -1,95 +1,222 @@
 <!DOCTYPE html>
 <html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Civic Radar - Peta Warga</title>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport"
+        content="width = device - width, initial - scale = 1.0">
+        <title>
+            Civic Radar - Pantau & laporkan Kondisi Sekitar
+        </title>
+        <link rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+        <style>
+            *{box-sizing : border-box}
+            body{
+                margin: 0;
+                font-family: Inter, Arial, sans-serif;
+                background: #f5f7fb;
+                color: #182236
+            }
+            button, input, select, textarea{
+                font: inherit;
+            }
+            .app{
+                display: flex;
+                min-height: 100vh;
+            }
+            .sidebar{
+                width: 245px;
+                background: #ffff;
+                border-right: 1px slid #e7eaf0;
+                padding: 24px 16px;
+                position: fixed;
+                inset: 0 auto 0;
+                z-index: 1000;
+            }
+            .brand{
+                display: flex;
+                align-items: center;
+                gap: 10ox;
+                padding: 4px 10px 28px;
+            }
+            .logo{
+                width: 36px;
+                height: 36px;
+                border-radius: 14px;
+                background: #1d4ed8;
+                color: white;
+                display: grid;
+                place-items: center;
+                font-weight: 800;
+                font-size: 18px;
+            }
+            .brand strong{
+                font-size: 18px;
+            }
+            .brand span{
+                display: block;
+                color: #8a94a6;
+                font-size: 11px;
+                margin-top: 2px;
+            }
+            .nav title{
+                font-size: 11px;
+                text-transform: center;
+                color: #9aa3b2;
+                font-weight: 700;
+                padding: 0 12px 8px;
+            }
+            .nav a.active,
+            .nav a:hover{
+                background: #edf3ff;
+                color: #1d4ed8;
+                font-weight: 700;
+            }
+            .side-card{
+                position: absolute;
+                left: 16px;
+                right: 16px;
+                bottom: 22px;
+                background: #f5f8ff;
+                border: 1px solid #e1eaff;
+                border-radius: 14px;
+                padding: 14px;
+                color: #60708a;
+            }
+            .side-card b{
+                display:block;
+                color: #233044;
+                margin-bottom: 5px;
+            }
 
-    <!-- 1. CSS Leaflet (Untuk Tampilan Peta) -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+            .main{
+                margin-left: 245px;
+                width: calc(100% - 245px);
+                padding: 24px 30px;
+            }
+            .topbar{
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 24px;
+            }
+            .page title h1{
+                margin: 0;
+                font-size: 25px;
+            }
+            .page title p{
+                margin: 5px 0 0;
+                color: #7a8494;
+                font-size: 13px;
+            }
+            .profile{
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+            .avatar{
+                width: 38px;
+                height: 38px;
+                border-radius: 50%;
+                background: #dbeafe;
+                color: #1d4ed8;
+                display: grid;
+                place-items: center;
+                font-weight: 800;
+            }
+            .profile small{
+                display: block;
+                color: #8a94a6;
+            }
+            /*cards*/
+            .stats{
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 15px;
+                margin-bottom: 18px;
+            }
+            .card{
+                background: #ffff;
+                border: 1px solid #e8ebf1;
+                border-radius: 15px;
+                box-shadow: 0 3px 12px rgba(30, 50, 80, .04);
+            }
+            .stat{
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            .stat .icon{
+                width: 42px;
+                height: 42px;
+                border-radius: 12px;
+                background: #eef4ff;
+                display: grid;
+                place-items: center;
+                color: #1d4ed8;
+                font-size: 19px;
+            }
+            .stat b{
+                font-size: 25px;
+                display: block;
+            }
+            .stat span{
+                font-size: 12px;
+                color: #8993a3;
+            }
+            /*gae map e*/
+            .content{
+                display: grid;
+                grid-template-columns: minmax(0,1.6fr) minmax(310px,.8fr);
+                gap: 18px;
+            }
+            .map-card{
+                padding: 0;
+                overflow: hidden;
+            }
+            .card-head{
+                padding: 17px 18px;
+                border-bottom: 1px solid #edf0f4;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
 
-    <!-- Styling Sederhana untuk Tampilan Web -->
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f4f6f9;
-        }
-        h2 {
-            color: #333;
-            text-align: center;
-        }
-        #map {
-            height: 500px;
-            width: 100%;
-            border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
-        .info-box {
-            text-align: center;
-            margin-bottom: 15px;
-            color: #666;
-        }
-    </style>
-</head>
-<body>
+            .card-head h2{
+                font-size: 15px;
+                margin: 0;
+            }
+            .card-head span{
+                font-size: 12px;
+                color: #8a94a6;
+            }
+            #map{
+                height: 460px;
+                width: 100%;
+            }
+            .map-tools{
+                position: absolute;
+                z-index: 500;
+                right: 30px;
+                margin-top: 12px;
+                display: flex;
+                gap: 7px;
+            }
 
-    <h2>Civic Radar - Pantau Masalah Sekitar</h2>
-    <div class="info-box">Mendeteksi lokasi Anda secara otomatis...</div>
+            .tool{
+                background: #ffff;
+                border: 1px solid #e5e8ed;
+                border-radius: 8px;
+                padding: 8px 11px;
+                cursor: pointer;
+                box-shadow: 0 2px 8px #00000010;
+                font-size: 12px;
+            }
 
-    <!-- Wadah / Elemen Tempat Peta Muncul -->
-    <div id="map"></div>
-
-    <!-- 2. JavaScript Leaflet (Library Peta) -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-    <!-- 3. Skrip Utama JavaScript Kita -->
-    <script>
-        // Fungsi untuk menginisialisasi peta berdasarkan koordinat (Latitude & Longitude)
-        function inisialisasiPeta(lat, lng) {
-            // Membuat peta berpusat pada koordinat user dengan tingkat zoom 15
-            var map = L.map('map').setView([lat, lng], 15);
-
-            // Memuat gambar ubin (tile) peta dari OpenStreetMap
-            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 19,
-                attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            }).addTo(map);
-
-            // Menambahkan Marker (Pin) di lokasi user saat ini
-            L.marker([lat, lng]).addTo(map)
-                .bindPopup("<b>Halo!</b><br>Anda berada di sini.")
-                .openPopup();
+            .tool:hover{
+                background: #f4f7ff;
+            }
             
-            // CONTOH: Menambahkan pin tiruan laporan warga lain di sekitar
-            L.marker([lat + 0.002, lng + 0.002]).addTo(map)
-                .bindPopup("<b>Laporan:</b> Jalan Berlubang<br>Status: Menunggu Penanganan");
-        }
-
-        // Mengecek apakah browser mendukung Geolocation API
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                function(position) {
-                    // Jika izin DIBERIKAN oleh user, ambil koordinat aslinya
-                    const userLat = position.coords.latitude;
-                    const userLng = position.coords.longitude;
-                    
-                    // Jalankan fungsi peta dengan koordinat user
-                    inisialisasiPeta(userLat, userLng);
-                },
-                function(error) {
-                    // Jika izin DITOLAK atau GPS mati, pakai titik default (Contoh: Kota Malang)
-                    console.warn("Gagal mendeteksi lokasi, menggunakan lokasi default.");
-                    inisialisasiPeta(-7.9666, 112.6326);
-                }
-            );
-        } else {
-            // Jika browser sama sekali tidak mendukung
-            alert("Browser Anda tidak mendukung fitur Geolocation.");
-            inisialisasiPeta(-7.9666, 112.6326);
-        }
-    </script>
-
-</body>
+        </style>
+    </head>
 </html>
