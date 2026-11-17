@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Civic Radar - Peta Warga</title>
+
+    <!-- 1. CSS Leaflet (Untuk Tampilan Peta) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <!-- Styling Sederhana untuk Tampilan Web -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f6f9;
+        }
+        h2 {
+            color: #333;
+            text-align: center;
+        }
+        #map {
+            height: 500px;
+            width: 100%;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .info-box {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Civic Radar - Pantau Masalah Sekitar</h2>
+    <div class="info-box">Mendeteksi lokasi Anda secara otomatis...</div>
+
+    <!-- Wadah / Elemen Tempat Peta Muncul -->
+    <div id="map"></div>
+
+    <!-- 2. JavaScript Leaflet (Library Peta) -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- 3. Skrip Utama JavaScript Kita -->
+    <script>
+        // Fungsi untuk menginisialisasi peta berdasarkan koordinat (Latitude & Longitude)
+        function inisialisasiPeta(lat, lng) {
+            // Membuat peta berpusat pada koordinat user dengan tingkat zoom 15
+            var map = L.map('map').setView([lat, lng], 15);
+
+            // Memuat gambar ubin (tile) peta dari OpenStreetMap
+            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            }).addTo(map);
+
+            // Menambahkan Marker (Pin) di lokasi user saat ini
+            L.marker([lat, lng]).addTo(map)
+                .bindPopup("<b>Halo!</b><br>Anda berada di sini.")
+                .openPopup();
+            
+            // CONTOH: Menambahkan pin tiruan laporan warga lain di sekitar
+            L.marker([lat + 0.002, lng + 0.002]).addTo(map)
+                .bindPopup("<b>Laporan:</b> Jalan Berlubang<br>Status: Menunggu Penanganan");
+        }
+
+        // Mengecek apakah browser mendukung Geolocation API
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    // Jika izin DIBERIKAN oleh user, ambil koordinat aslinya
+                    const userLat = position.coords.latitude;
+                    const userLng = position.coords.longitude;
+                    
+                    // Jalankan fungsi peta dengan koordinat user
+                    inisialisasiPeta(userLat, userLng);
+                },
+                function(error) {
+                    // Jika izin DITOLAK atau GPS mati, pakai titik default (Contoh: Kota Malang)
+                    console.warn("Gagal mendeteksi lokasi, menggunakan lokasi default.");
+                    inisialisasiPeta(-7.9666, 112.6326);
+                }
+            );
+        } else {
+            // Jika browser sama sekali tidak mendukung
+            alert("Browser Anda tidak mendukung fitur Geolocation.");
+            inisialisasiPeta(-7.9666, 112.6326);
+        }
+    </script>
+
+</body>
+</html>
