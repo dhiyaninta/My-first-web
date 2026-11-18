@@ -363,8 +363,147 @@
                 .side-card{
                     display: none;
                 }
+                .brand{
+                    justify-content: center;
+                    padding-bottom: 25px;
+                }
+                .main{
+                    margin-left: 72px;
+                    width: calc(100% - 72px);
+                }
+                .stats{
+                    grid-template-columns: repeat(2,1fr);
+                }
+                .content{
+                    grid-template-columns: 1fr;
+                }
+                .report-list{
+                    grid-template-columns: 1fr;
+                }
+            }
+            @media (max-width:600px) {
+                .main{
+                    padding: 14px;
+                }
+                .topbar{
+                    align-items: flex-start;
+                }
+                .profile div:not(.avatar){
+                    display: none;
+                }
+                .stat{
+                    grid-template-columns: 1fr 1fr;
+                    gap: 8px;
+                }
+
+                .stats{
+                    grid-template-columns: 1fr 1fr;
+                    gap: 8px;
+                }
+                .stat b{
+                    font-size: 20px;
+                }
+                .stat .icon{
+                    width: 35px;
+                    height: 35px;
+                }
+
+                #map{
+                    -ms-hyphenate-limit-lines: 370px;
+                }
+                .map-tools{
+                    right: 20px;
+                }
                 
+                .card-head{
+                    padding: 14px;
+                }
             }
         </style>
     </head>
+    <body>
+        <div class="app">
+            <!--Sidebar mewheheheh-->
+            <aside class="sidebar">
+                <div class="brand">
+                    <div class="logo">
+                        CR
+                    </div>
+
+                    <div>
+                        <strong>Civir Radar</strong>
+                        <span> Smart Citizen Platform</span>
+                    </div>
+
+                </div>
+                <div class="nav-title">
+                    Menu
+                </div>
+                <nav class="nav">
+                    <a class="active" onclick="scrollToId('dashboard')">
+                        * <span>Dashboard</span>
+                    </a>
+                    <a onclick="scrollToId('mapSection')">
+                        O <span>Peta Laporan </span>
+                    </a>
+                    <a onclick="scrollToId('reportForm')">
+                        + <span>Buat Lporan</span>
+                    </a>
+                    <a onclick="scrollToId('reports')">
+                        = <span>Riwayat Laporan</span>
+                    </a>
+
+                </nav>
+
+                <div class="side-card">
+                    <b> Civic Radar Alderts</b>
+
+                    Laporkan masalah lingkungan sekitar agar dapat dipantau dan ditinaklanjuti bersama!
+                </div>
+            </aside>
+            <!--MAIN -_- -->
+            <main class="main">
+                <div class="topbar" id="dashboard">
+                    <div class="page-title">
+                        <h1>
+                            Dashboard Civic Radar
+                        </h1>
+
+                        <p>
+                            Pantau kondisi fasilitas umum dan lingkungan sekitar anda!  
+                        </p>
+
+                    </div>
+
+                    <div class="profile">
+
+                        <div>
+                            <b>Warga</b>
+                            <small>Pengguna Civic Radar</small>
+                        </div>
+                        <div class="avatar">
+                            W
+                        </div>
+
+                    </div>
+
+                </div>
+                <!-- Satistics -->
+                 <section class="stats">
+                    <div class="cars stat">
+                        <div>
+                            <span> Total Laporan</span>
+                            <b id="total">0</b>
+                        </div>
+
+                        <div class="icon">
+                            =
+                        </div>
+
+                    </div>
+
+                 </section>
+            </main>
+        </div>
+    </body>
 </html>
