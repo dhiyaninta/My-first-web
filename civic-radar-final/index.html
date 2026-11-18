@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Civic Radar - Pantau &amp; Laporkan Kondisi Sekitar</title>
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo">CR</div>
+        <div>
+          <strong>Civic Radar</strong>
+          <span>Smart Citizen Platform</span>
+        </div>
+      </div>
+
+      <div class="nav-title">Menu</div>
+      <nav class="nav" id="nav">
+        <a class="active" data-target="dashboard">*<span>Dashboard</span></a>
+        <a data-target="mapSection">O<span>Peta Laporan</span></a>
+        <a data-target="reportForm">+<span>Buat Laporan</span></a>
+        <a data-target="reports">=<span>Riwayat Laporan</span></a>
+      </nav>
+
+      <div class="side-card">
+        <b>Civic Radar Alerts</b>
+        Laporkan masalah lingkungan sekitar agar dapat dipantau dan ditindaklanjuti bersama!
+      </div>
+    </aside>
+
+    <!-- ===== KONTEN UTAMA ===== -->
+    <main class="main">
+
+      <!-- Header -->
+      <header class="topbar" id="dashboard">
+        <div class="page-title">
+          <h1>Dashboard Civic Radar</h1>
+          <p>Pantau kondisi fasilitas umum dan lingkungan sekitar Anda!</p>
+        </div>
+        <div class="profile">
+          <div>
+            <b>Warga</b>
+            <small>Pengguna Civic Radar</small>
+          </div>
+          <div class="avatar">W</div>
+        </div>
+      </header>
+
+      <!-- Statistik -->
+      <section class="stats">
+        <div class="card stat">
+          <div><span>Total Laporan</span><b id="statTotal">0</b></div>
+          <div class="icon">=</div>
+        </div>
+        <div class="card stat stat--wait">
+          <div><span>Menunggu</span><b id="statWait">0</b></div>
+          <div class="icon">!</div>
+        </div>
+        <div class="card stat stat--proces">
+          <div><span>Diproses</span><b id="statProces">0</b></div>
+          <div class="icon">~</div>
+        </div>
+        <div class="card stat stat--done">
+          <div><span>Selesai</span><b id="statDone">0</b></div>
+          <div class="icon">&#10003;</div>
+        </div>
+      </section>
+
+      <!-- Peta + Form -->
+      <section class="content">
+
+        <div class="card map-card" id="mapSection">
+          <div class="card-head">
+            <h2>Peta Laporan</h2>
+            <span>Klik peta untuk memilih lokasi laporan</span>
+          </div>
+          <div class="map-tools">
+            <button class="tool" type="button" id="btnLocate">Lokasi Saya</button>
+            <button class="tool" type="button" id="btnFit">Lihat Semua</button>
+          </div>
+          <div id="map"></div>
+        </div>
+
+        <div class="card report-card" id="reportForm">
+          <h2>Buat Laporan</h2>
+          <p class="muted">Isi data berikut untuk melaporkan masalah di sekitar Anda.</p>
+
+          <form id="form" novalidate>
+            <div class="form-group">
+              <label for="category">Kategori Masalah</label>
+              <select id="category" required>
+                <option value="">Pilih kategori</option>
+                <option>Jalan Rusak</option>
+                <option>Sampah Menumpuk</option>
+                <option>Lampu Jalan Mati</option>
+                <option>Banjir / Drainase</option>
+                <option>Fasilitas Umum Rusak</option>
+                <option>Lainnya</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="title">Judul Laporan</label>
+              <input id="title" type="text" maxlength="80" placeholder="Contoh: Lubang besar di Jl. Veteran" required>
+            </div>
+
+            <div class="form-group">
+              <label for="location">Lokasi</label>
+              <div class="loc-row">
+                <input id="location" type="text" placeholder="Klik peta atau gunakan GPS" readonly required>
+                <button class="ghost" type="button" id="btnGps">Gunakan GPS</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="desc">Deskripsi</label>
+              <textarea id="desc" placeholder="Jelaskan kondisi masalah secara singkat" required></textarea>
+            </div>
+
+            <div class="form-group">
+              <label class="upload" for="photo">
+                Unggah foto (opsional)
+                <input id="photo" type="file" accept="image/*">
+              </label>
+              <img id="preview" alt="Pratinjau foto">
+            </div>
+
+            <button class="primary" type="submit">Kirim Laporan</button>
+          </form>
+        </div>
+      </section>
+
+      <!-- Riwayat Laporan -->
+      <section class="card reports" id="reports">
+        <div class="reports-head">
+          <h2>Laporan Terbaru</h2>
+          <select id="filter">
+            <option value="all">Semua status</option>
+            <option value="wait">Menunggu</option>
+            <option value="proces">Diproses</option>
+            <option value="done">Selesai</option>
+          </select>
+        </div>
+        <div class="report-list" id="reportList"></div>
+      </section>
+
+    </main>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
