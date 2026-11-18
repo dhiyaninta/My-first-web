@@ -216,7 +216,155 @@
             .tool:hover{
                 background: #f4f7ff;
             }
-            
+            /* reprt */
+            .report-card h2{
+                font-size: 17px;
+                margin: 0 0 5px;
+            }
+            .muted {
+                font-size: 12px;
+                color: #8993a3;
+            }
+            .form-group{
+                margin-top: 14px;
+            }
+            .form-group label{
+                font-size: 12px;
+                font-weight: 700;
+                display: block;
+                margin-bottom: 6px;
+            }
+            input,
+            select,
+            textarea{
+                width: 100%;
+                border: 1px solid #dfe4eb;
+                border-radius: 9px;
+                padding: 10px 11px;
+                outline: none;
+                background: #ffff;
+            }
+            textarea{
+                resize: vertical;
+                min-height: 80px;
+            }
+
+            input focus,
+            select focus,
+            textarea fokus{
+                border-color: #4f7fe8;
+                box-shadow: 0 0 0 3px #dce7ff;
+            }
+
+            .primary{
+                width: 100%;
+                border: o;
+                background: #1d4ed8;
+                color: #ffff;
+                padding: 11px;
+                border-radius: 9px;
+                margin-top: 15px;
+                font-weight: 700;
+                cursor: pointer;
+            }
+
+            .primary:hover{
+                background: #1740b2;
+            }
+            .upload{
+                border: 1px dashed #cbd4e2;
+                padding: 13px;
+                border-radius: 9px;
+                text-align: center;
+                color: #7c8798;
+                font-size: 12px;
+                cursor: pointer;
+            }
+
+            .upload input{
+                display: none;
+            }
+
+            /*report lisnya wok*/
+            .reports{
+                margin-top: 18px;
+            }
+            .report-list{
+                display: grid;
+                grid-template-columns: repeat(3,1fr);
+                gap: 15px;
+            }
+
+            .report-item{
+                background: #ffff;
+                border: 1px solid #e8ebf1;
+                border-radius: 13px;
+                padding: 15px;
+            }
+
+            .report-top{
+                display: flex;
+                justify-content: space-between;
+                gap: 10px;
+            }
+            .report-item h3{
+                font-size: 14px;
+                margin: 0 0 5px;
+            }
+            .report-item p{
+                font-size: 12px;
+                color: #778294;
+                line-height: 1.5;
+                margin: 8px 0;
+            }
+            .badge{
+                font-size: 10px;
+                padding: 5px 8px;
+                border-radius: 20px;
+                white-space: nowrap;
+                font-weight: 700;
+            }
+
+            .wait{
+                background-color: #fff6dc #a56b00;
+            }
+            .proces{
+                background-color: #e8f0ff #2454b8;
+            }
+            .done{
+                background-color: #e7f8ef #16804d;
+            }
+            .report-meta{
+                font-size: 11px;
+                color: #9aa3b2;
+            }
+
+            .toast{
+                position: fixed;
+                right: 25px;
+                bottom: 25px;
+                background-color: #172033 white;
+                padding: 13px 17px;
+                border-radius: 10px;
+                box-shadow: 0 8px 23px #0003;
+                display: none;
+                font-size: 13px;
+            }
+
+            /*Bagian responsive nya wokk*/
+            @media (max-width: 950px) {
+                .sidebar{
+                    width: 72px;
+                    padding: 18px 10px;
+                }
+                .brand div:last-child,
+                .nav-title,
+                .nav a span,
+                .side-card{
+                    display: none;
+                }
+                
+            }
         </style>
     </head>
 </html>
