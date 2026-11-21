@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+    <head>
+        <meta charset="UTF-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <title>CivicRadar-Transparasi & Pelaporan Publik Berbasis Lokasi</title>
+
+        <!-- Bagian Tailwind CSS-->
+        <script src="https://cdn.tailwindcss.com"></script>
+        <!--Bagian Google fonts-->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link 
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+        <!--Leaflet CSS & JS untuk Peta radar aktif-->
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+        <script src = "https://unpkg.com.leaflet@1.9.4/dist/leaflet.js"></script>
+
+        <!--Konfigurasi tailwind-->
+        <script>
+            tailwind.config={
+                theme:{
+                    extend:{
+                        colors:{
+                            cream: '#F5F2E8',
+                            forest: '#142218',
+                            forestCard: '#1B281E',
+                            stoneMuted: '#5C5B55'
+                        },
+                        fontFamily: {
+                            serif: ["Cormorant Garamond", 'serif'],
+                            sans: ["Plus Jakarta Sans", 'sans-serif'],
+                        }
+                    }
+                }
+            }
+        </script>
+
+        <style>
+            body{
+                background-color: #F5F2E8;
+                color: #142218;
+                font-family: 'Plus Jakarta Sans', sans-serif;
+            }
+
+            .editorial-tittle{
+                font-family: 'Cormorant Garamond', serif;
+            }
+
+            #radarMap {
+                height: 400px;
+                width: 100%;
+                z-index: 10;
+            }
+
+            /*penanda biru kyk gmaps*/
+            .gmamps-user-pin{
+                position: relative;
+                width: 22px;
+                height: 22px;
+                display: flex;
+                align-items: center;
+            }
+
+            .gmaps-user-dot{
+                position: absolute;
+                width: 34px;
+                height: 34px;
+                background-color: rgba(37, 99, 235, 0.22);
+                border-radius: 9999px;
+                animation: gmapsPulse 2s infinite;
+                z-index: 1;
+            }
+
+            @keyframes gmapspulse {
+                0% {transform: scale(0.75); opacity: 0.9;}
+                70% {transform: scale(1.35); opacity: 0.25;}
+                100%{transform: scale(0.75); opacity: 0.9;}
+            }
+        </style>
+    </head>
+    <body class="antialiased selection:bg-forest selection:text-cream">
+
+  <!-- HERO SECTION -->
+  <header class="relative bg-forest text-cream overflow-hidden rounded-b-[2.5rem] shadow-xl">
+    <div class="absolute inset-0 opacity-35 bg-cover bg-center" 
+         style="background-image: href"https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    </div>
+    <div class="absolute inset-0 bg-gradient-to-b from-forest/80 via-forest/65 to-forest"></div>
+
+    <div class="relative max-w-6xl mx-auto px-6 pt-6 pb-20">
+      <!-- Top Floating Navigation -->
+      <nav class="flex items-center justify-between gap-4">
+        <a href="#" class="editorial-title text-2xl md:text-3xl font-semibold tracking-tight text-cream">
+          CivicRadar.
+        </a>
+
+        <!-- Pill Menu -->
+        <div class="hidden md:flex items-center gap-1 bg-white/10 backdrop-blur-md border border-white/15 p-1.5 rounded-full text-xs font-medium">
+          <a href="#radar-section" class="px-4 py-1.5 rounded-full bg-cream text-forest font-semibold transition">Radar Laporan</a>
+          <a href="#how-it-works" class="px-4 py-1.5 rounded-full text-cream/85 hover:text-cream transition">Alur Transparansi</a>
+          <a href="#lapor-form" class="px-4 py-1.5 rounded-full text-cream/85 hover:text-cream transition">Buat Laporan</a>
+        </div>
+
+        <button onclick="detectUserLocation()" class="flex items-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 px-4 py-2 rounded-full text xs font-medium transition">
+            <span id="gpsPulse" class="w-2-h-2 rounded-full-bg-emerald-400 animate-ping"></span>
+            <span id="navLocationStatus">Deteksi GPS</span>
+        </button>
+      </nav>
+
+      <!--Hero editorial headline-->
+      <div class="mt-16 md:mt-24 max-w-3xl">
+        <p class="uppercase tracking-[0.2em] text-cream/70 font-semibold mb-3">
+            SMART GOVERNANCE_SDG 16- TRANSPARENCY RADAR
+           <p style="font-size: 14px class =text-cream/20px font-semibold mb-1;">
+            By Ctrl+A+delete
+           </p>
+           <br>
+        </p>
+        <h1 class="editorial-title text-5xl sm:text-6xl md:text-7xl font-semibold leading-[0.95] tracking-tight">
+            PANTAU <span class="italic font-normal text-cream/90">ruang</span><br/>
+            PUBLIK SEKITAR KAMU
+        </h1>
+        <p class="mt-5 text-sm md:text-base text-cream/80 max-w-xl leading-relaxed">
+            Sistem pelaporan warga berbasis geolokasi waktu nyata. Pantau tindak lanjut laporan di
+            sekitar Anda secara terbuka.
+            <br>
+            Mulai dari status menunggu, diproses, hingga tuntas!!
+        </p>
+
+        <!--Act Buttons dan Live Coordinate Pill-->
+        <div class="mt-8 flex flex-wrap items-center gap-4">
+            <a href="#lapor-form" class="inline-flex items-center gap-3 bg-cream text-forest pl-5 pr-2 py-2 rounded-full text-xs font-bold tracking-wide hover:scale-[1.02] transition shadow-lg">
+                <span>Laporkan Kondisi Sekitar </span>
+                <span class="w-7 h-7 rounded-full bg-forest text-cream flex items-center justify-center">-></span>
+            </a>
+
+            <div class="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-black/30 border border-white/15 text-xs text-cream/90">
+                <svg class="w-4 h-4 text-emerald-400 shirink-0" fill="none" troke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.65716.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                <span id="heroCoords Text">Menunggu Izin Lokasi Perangkat Anda...</span>
+            </div>
+        </div>
+      </div>
+    </div>
+  </header>
+  <!--Section 1. Radar Peta dan Transparasi Laporan Publik-->
+  <main id="radar-section" class="max-w-6xl mx-auto px-6 py-16">
+    <!-- BAnner Lokasi Pengguna kyk di gmaps-->
+     <div class="bg-white rounded-3xl p-5 md:p-6 border border-forest/15 shadow-sm mb-6 flex flex-col lg:items-center justify-between gap-4">
+        <div class="flex items-start gao-3.5">
+            <div class="w-11 h-11 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center shirink-0 mt-0.5">
+                <span class="relative flexh-3.5 w-3.5">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-blue-600 border-2 border-white"></span>
+                </span>
+            </div>
+            <div >
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
+                        Lokasi Anda Saat Ini
+                    </span>
+                    <span id="userAccuracyText" class="text-[11px] text-stoneMuted font-mediu">Akuras GPS: - </span>
+                </div>
+                <h3 id="userPlaceName" class="text-base md:text-lg font-bold text-forest mt-1">
+                    Mendeteksi nama jalan dan area sekitar...
+                </h3>
+                <p id="userExactCoords" class="text-xs font-mono text-stoneMuted mt-0.5">
+                    Lat:   , Lng: 
+                </p>
+            </div>
+        </div>
+
+     </div>
+  </main>
+
+    </body>
+</html>
