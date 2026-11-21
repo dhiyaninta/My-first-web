@@ -164,7 +164,7 @@
                     <span class="text-[11px] font-bold uppercase tracking-wider text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
                         Lokasi Anda Saat Ini
                     </span>
-                    <span id="userAccuracyText" class="text-[11px] text-stoneMuted font-mediu">Akuras GPS: - </span>
+                    <span id="userAccuracyText" class="text-[11px] text-stoneMuted font-mediu">Akurasi GPS: - </span>
                 </div>
                 <h3 id="userPlaceName" class="text-base md:text-lg font-bold text-forest mt-1">
                     Mendeteksi nama jalan dan area sekitar...
@@ -174,7 +174,20 @@
                 </p>
             </div>
         </div>
-
+        <!-- Kontrol Peta Ala Maps -->
+        <div class="flex flex-wrap items-center gap-2">
+            <button onclick="centerOnUser()" class="px-4 py-2 rounded-full text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white transition shadow-sm">
+                ● Lokasi Saya
+            </button>
+            <button onclick="toggleMapLayer()" id="mapLayerBtn" class="px-4 py-2 rounded-full text-xs font-semibold bg-forest/10 hover:bg-forest/20 text-forest transition">
+                Mode Satelit
+            </button>
+            <a id="gmapsExternalLink" href="https://www.google.com/maps?q=-7.966620,112.632632" target="_blank" rel="noopener noreferrer"
+            class="px-4 py-2 rounded-full text-xs font-semibold bg-forest text-cream hover:bg-forest/90 transition">
+                Buka di Google Maps ↗
+            </a>
+            </div>
+        </div>
      </div>
   </main>
 
