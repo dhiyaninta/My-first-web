@@ -15,7 +15,7 @@
 
         <!--Leaflet CSS & JS untuk Peta radar aktif-->
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-        <script src = "https://unpkg.com.leaflet@1.9.4/dist/leaflet.js"></script>
+        <script src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
         <!--Konfigurasi tailwind-->
         <script>
@@ -35,9 +35,10 @@
                     }
                 }
             }
+           
         </script>
-
         <style>
+            
             body{
                 background-color: #F5F2E8;
                 color: #142218;
@@ -80,6 +81,7 @@
             }
         </style>
     </head>
+    
     <body class="antialiased selection:bg-forest selection:text-cream">
 
   <!-- HERO SECTION -->
@@ -134,7 +136,7 @@
         <div class="mt-8 flex flex-wrap items-center gap-4">
             <a href="#lapor-form" class="inline-flex items-center gap-3 bg-cream text-forest pl-5 pr-2 py-2 rounded-full text-xs font-bold tracking-wide hover:scale-[1.02] transition shadow-lg">
                 <span>Laporkan Kondisi Sekitar </span>
-                <span class="w-7 h-7 rounded-full bg-forest text-cream flex items-center justify-center">-></span>
+                <span class="w-7 h-7 rounded-full bg-forest text-cream flex items-center justify-center">&#8594</span>
             </a>
 
             <div class="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-black/30 border border-white/15 text-xs text-cream/90">
@@ -188,8 +190,295 @@
             </a>
             </div>
         </div>
-     </div>
-  </main>
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
+            <div>
+                <div class="flex items-center gap-2.5">
+                    <h2 class="editorial-title text-4xl md:text-5xl font-semibold text-for'">
+                        Radar laporan warga
+                    </h2>
+                    <span id="syncModeBadge" class="px-2.5 py-1 rounded-full text-[10px]font-bold uppercase tracking-wider rounded-full-bg-emerald-100 text-emerald-800 border text-emerald-200">
+                        Live Publik 
+                    </span>
+                </div>
+                <p class="text-sm text-stoneMuted mt-1">
+                    Transpaasi penuh seluruh aduan publik di radius koordinat titik Anda.
+                </p>
+            </div>
 
+            <!--Filter Status Transparasi (mulai dari 0)-->
+            <div class="flex flex-wrap gap-2" id="filterButtons">
+                <button data-filter="Menunggu" onclick="filterReport('Menunggu')" class="filter btn px-4 py-2 rounded-full text-xs font-semibold bg-forest/10 text-forest hover.bg-forest/20 transition">
+                    Menunggu (<span id="countDiproses">0</span>)
+                </button>
+                <button data-filter="Selesai" onclick="filterReports('Selesai')" class="filter-btn px-4 py-2 rounded-full text-xs font-semibold bg-forest/10 text-forest hover:bg-forest/20 transition">
+                    Selesai (<span id="countSelesai">0</span>)
+                </button>
+            </div>
+        </div>
+
+        <!--Peta Interaktif Radar-->
+        <div class="rounded-3xl overflow-hidden border border-forest/15 shadow-sm mb-10 bg-white">
+            <div id="radarMap"></div>
+            <div class="px-5 py-3 bg-white border-t border-forest/10 flex flex-wrap items-center justify-between gap-2 text-xs text-stoneMuted">
+                <div class="flex flex-wrap items-center gap-4">
+                    <span class="inline-flex-flex items-center gap-1.5">
+                        <span class="w-3 h-3 rounded-full bg-blue-600 border-2 border-white shadow inline-block"></span>
+                        <span>TItik Lokasi Anda</span>
+                    </span>
+                    <span class="inline-flex items-center gap-1.5">
+                        <span class="w-3 h-3 rounded-full bg-forest inline-block"></span>
+                        <span>Pin Laporan Warga</span>
+                    </span>
+                </div>
+                <span class="font-semibold text-forest" id="radiusInfo">Total laporan aktif di radar: 0 Laporan</span>
+            </div>
+        </div>
+
+        <!--Empty State saat laporan masih 0-->
+        <div id="emptyStateBox" class="bh=g-white rounded-3xl border border-dashed border-forest/25 p-10 md:p-14 text-center">
+            <div class="w-14 h-14 rounded-full bg-cream border border-forest/15 flex items-center justify-center mx-auto text-forest font-bold text-lg">
+                0
+            </div>
+            <h3 class="editorial-title text-3xl font-semibold text-forest mt-4">
+                Belum Ada Laporan Masuk
+            </h3>
+            <p class="text-xs md:text-sm text-stoneMuted max-w md mx-auto mt-2 leading-relaxed">
+                Saat ini radar masih kosong (0 laporan). Jadilah warga pertama yang melaporkan kondisi infrastruktur di sekitar lokasi Anda agar dapat dipantau bersama.
+            </p>
+            <a href="#lapor-form" class="mt-6 inline-flex items-center gap-3 bg-forest text-cream pl-3 pr-2 py-2 rounded-full text-xs font-semibold hover:bg-forest/90 transition">
+                <span>Buat Laporan Pertama</span>
+                <span class="w-6 h-6  rounded-full bg-cream text-forest flex items-center justify-center">&#8594</span>
+            </a>
+        </div>
+
+        <!--Grid Kartu laporan publik(Muncul otomatis begitu ada user melapor)-->
+        <div id="repostGrid" class="grid grid-cols-1 md:grid-cols-3 gap-6 hidden"></div>
+    </main>  
+    <!--Section 2: Alur Transparasi-->
+    <section id="how-it-works" class="max-w-6xl mx-auto px-6 py-12 border-t border-forest/10">
+    <h2 class="editorial-title text-4xl md:text-5xl font-semibold text-forest mb-10">
+      Cara Kerja Transparansi.
+    </h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div class="border-t border-forest/30 pt-4">
+        <span class="text-xs font-bold text-stoneMuted">01</span>
+        <h3 class="editorial-title text-2xl font-semibold mt-2 text-forest">Kunci Koordinat GPS</h3>
+        <p class="text-xs text-stoneMuted mt-2 leading-relaxed">
+          Sistem otomatis memverifikasi titik lokasi pelapor untuk mencegah laporan fiktif dan memetakan prioritas wilayah secara akurat.
+        </p>
+      </div>
+
+      <div class="border-t border-forest/30 pt-4">
+        <span class="text-xs font-bold text-stoneMuted">02</span>
+        <h3 class="editorial-title text-2xl font-semibold mt-2 text-forest">Pantau Progres Publik</h3>
+        <p class="text-xs text-stoneMuted mt-2 leading-relaxed">
+          Setiap laporan tampil terbuka untuk seluruh warga dengan status real-time: Menunggu Verifikasi, Sedang Diproses, hingga Selesai.
+        </p>
+      </div>
+       <div class="border-t border-forest/30 pt-4">
+        <span class="text-xs font-bold text-stoneMuted">03</span>
+        <h3 class="editorial-title text-2xl font-semibold mt-2 text-forest">Akuntabilitas Terukur</h3>
+        <p class="text-xs text-stoneMuted mt-2 leading-relaxed">
+          Warga dapat memvalidasi apakah perbaikan di lapangan benar-benar telah tuntas sesuai catatan instansi terkait.
+        </p>
+      </div>
+     </div>
+     <div class="border-t border-forest/30 pt-4">
+        <span class="text-xs font-bold text-stoneMuted">03</span>
+        <h3 class="editorial-title text-2xl font-semibold mt-2 text-forest">Akuntabilitas Terukur</h3>
+        <p class="text-xs text-stoneMuted mt-2 leading-relaxed">
+          Warga dapat memvalidasi apakah perbaikan di lapangan benar-benar telah tuntas sesuai catatan instansi terkait.
+        </p>
+     </div>
+       <!-- SECTION 3: FORMULIR BUAT LAPORAN -->
+  <section id="lapor-form" class="max-w-6xl mx-auto px-6 py-12">
+    <div class="relative bg-forest rounded-[2rem] p-8 md:p-12 text-cream overflow-hidden shadow-xl">
+      <div class="absolute inset-0 opacity-20 bg-cover bg-center" 
+           style="background-image: url('./A beautiful street in Malang City.jpg');">
+      </div>
+      
+      <div class="relative grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+        <div class="lg:col-span-5">
+          <h2 class="editorial-title text-4xl md:text-5xl font-semibold leading-none">
+            KIRIM <span class="italic font-normal">laporan</span><br/>
+            LOKASI ANDA.
+          </h2>
+          <p class="text-xs md:text-sm text-cream/80 mt-4 leading-relaxed">
+            Laporan Anda akan langsung muncul pada Radar Publik dan peta kota agar dapat dipantau bersama oleh warga lain dan instansi berwenang.
+          </p>
+
+          <div class="mt-6 p-4 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/15 text-xs space-y-1.5">
+            <div class="text-cream/60 uppercase tracking-wider text-[10px] font-bold">Koordinat Terkunci Otomatis</div>
+            <div class="font-mono text-emerald-300" id="formCoordsDisplay">-7.966620, 112.632632</div>
+            <div class="text-cream/80" id="formAddressDisplay">Area Sekitar Lokasi Pengguna</div>
+          </div>
+        </div>
+
+        <form onsubmit="submitNewReport(event)" class="lg:col-span-7 space-y-4">
+          <div>
+            <label class="block text-[11px] uppercase tracking-wider text-cream/70 mb-1.5 ml-3">Judul Laporan</label>
+            <input type="text" id="reportTitle" required placeholder="Contoh: Trotoar berlubang & guiding block rusak"
+              class="w-full px-5 py-3.5 rounded-full bg-white/10 border border-white/25 text-sm text-cream placeholder:text-cream/40 focus:outline-none focus:border-cream transition" />
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-[11px] uppercase tracking-wider text-cream/70 mb-1.5 ml-3">Kategori Infrastruktur</label>
+              <select id="reportCategory"
+                class="w-full px-5 py-3.5 rounded-full bg-forestCard border border-white/25 text-sm text-cream focus:outline-none focus:border-cream transition">
+                <option value="Jalan & Trotoar">Jalan & Trotoar</option>
+                <option value="Penerangan Jalan">Penerangan Jalan (PJU)</option>
+                <option value="Drainase & Banjir">Drainase & Saluran Air</option>
+                <option value="Fasilitas Difabel">Aksesibilitas & Guiding Block</option>
+                <option value="Kebersihan & Sampah">Kebersihan & Sampah</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-[11px] uppercase tracking-wider text-cream/70 mb-1.5 ml-3">Nama Pelapor (Opsional)</label>
+              <input type="text" id="reporterName" placeholder="Warga Anonim"
+                class="w-full px-5 py-3.5 rounded-full bg-white/10 border border-white/25 text-sm text-cream placeholder:text-cream/40 focus:outline-none focus:border-cream transition" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-[11px] uppercase tracking-wider text-cream/70 mb-1.5 ml-3">Detail Kondisi Lapangan</label>
+            <input type="text" id="reportDesc" required placeholder="Jelaskan kondisi singkat & patokan lokasi terdekat..."
+              class="w-full px-5 py-3.5 rounded-full bg-white/10 border border-white/25 text-sm text-cream placeholder:text-cream/40 focus:outline-none focus:border-cream transition" />
+          </div>
+
+          <button type="submit" id="submitBtn"
+            class="w-full mt-2 flex items-center justify-between bg-cream text-forest pl-6 pr-2 py-2.5 rounded-full text-xs font-bold tracking-wide hover:bg-white transition shadow-lg">
+            <span>Publikasikan ke Radar Transparansi</span>
+            <span class="w-8 h-8 rounded-full bg-forest text-cream flex items-center justify-center">→</span>
+          </button>
+        </form>
+      </div>
+    </div>
+  </section>
+  <!--Footer-->
+  <footer class="max-w-6xl mx-auto px-6 py-10 bordert-t border-forest/15 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-stoneMuted">
+    <div>
+        <span class="editorial-title text-xl font-bold text-forest">CivicRadar.</span>
+        <span class="ml-2">Transparasi Layanan Publik Berbasis Geolokasi</span>
+    </div>
+    <div>Techcomfest 2027 &bull Smart Governance $ Public Service (SDGs 16)</div>
+  </footer>
+  
+  </main>
+  <script>
+  // 1. Koordinat default (Malang) sebelum GPS terdeteksi
+  let userLat = -7.966620;
+  let userLng = 112.632632;
+  let isSatellite = false;
+  let reports = [];
+
+  // 2. Inisialisasi Peta Leaflet ke dalam <div id="radarMap">
+  const map = L.map('radarMap').setView([userLat, userLng], 15);
+
+  const streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap contributors'
+  });
+
+  const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom: 19,
+    attribution: 'Tiles &copy; Esri'
+  });
+
+  streetLayer.addTo(map);
+
+  // 3. Marker titik biru lokasi pengguna
+  const userIcon = L.divIcon({
+    className: 'gmaps-user-pin',
+    html: '<div class="gmaps-user-dot"></div><div style="width:14px;height:14px;background:#2563eb;border:2.5px solid white;border-radius:9999px;box-shadow:0 1px 4px rgba(0,0,0,0.4);z-index:2;"></div>',
+    iconSize: [22, 22],
+    iconAnchor: [11, 11]
+  });
+
+  const userMarker = L.marker([userLat, userLng], { icon: userIcon })
+    .addTo(map)
+    .bindPopup('<b>Lokasi Anda</b>');
+
+  // 4. Fungsi Deteksi GPS
+  function detectUserLocation() {
+    const navStatus = document.getElementById('navLocationStatus');
+    const heroCoords = document.getElementById('heroCoordsText') || document.getElementById('heroCoords Text');
+    
+    if (!navigator.geolocation) {
+      alert('Browser Anda tidak mendukung Geolocation.');
+      return;
+    }
+
+    navStatus.textContent = 'Mendeteksi...';
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        userLat = pos.coords.latitude;
+        userLng = pos.coords.longitude;
+        const acc = Math.round(pos.coords.accuracy);
+
+        map.setView([userLat, userLng], 16);
+        userMarker.setLatLng([userLat, userLng]);
+
+        navStatus.textContent = 'GPS Aktif';
+        if (heroCoords) heroCoords.textContent = `${userLat.toFixed(6)}, ${userLng.toFixed(6)}`;
+        document.getElementById('userAccuracyText').textContent = `Akurasi GPS: ±${acc}m`;
+        document.getElementById('userPlaceName').textContent = 'Koordinat Perangkat Terkunci';
+        document.getElementById('userExactCoords').textContent = `Lat: ${userLat.toFixed(6)}, Lng: ${userLng.toFixed(6)}`;
+        document.getElementById('formCoordsDisplay').textContent = `${userLat.toFixed(6)}, ${userLng.toFixed(6)}`;
+        document.getElementById('gmapsExternalLink').href = `https://www.google.com/maps?q=${userLat},${userLng}`;
+      },
+      () => {
+        navStatus.textContent = 'GPS Default';
+        document.getElementById('userPlaceName').textContent = 'Lokasi Default (Izin GPS Ditolak)';
+        document.getElementById('userExactCoords').textContent = `Lat: ${userLat.toFixed(6)}, Lng: ${userLng.toFixed(6)}`;
+      }
+    );
+  }
+
+  // 5. Tombol Pusatkan Peta & Toggle Satelit
+  function centerOnUser() {
+    map.setView([userLat, userLng], 16);
+    userMarker.openPopup();
+  }
+
+  function toggleMapLayer() {
+    const btn = document.getElementById('mapLayerBtn');
+    if (isSatellite) {
+      map.removeLayer(satelliteLayer);
+      streetLayer.addTo(map);
+      btn.textContent = 'Mode Satelit';
+    } else {
+      map.removeLayer(streetLayer);
+      satelliteLayer.addTo(map);
+      btn.textContent = 'Mode Peta';
+    }
+    isSatellite = !isSatellite;
+  }
+
+  // 6. Tambah Pin Laporan ke Peta saat Form Dikirim
+  function submitNewReport(event) {
+    event.preventDefault();
+    const title = document.getElementById('reportTitle').value;
+    const category = document.getElementById('reportCategory').value;
+    const desc = document.getElementById('reportDesc').value;
+
+    L.marker([userLat, userLng])
+      .addTo(map)
+      .bindPopup(`<b>${title}</b><br><small>${category}</small><br>${desc}`)
+      .openPopup();
+
+    reports.push({ title, category, desc, status: 'Menunggu' });
+    document.getElementById('radiusInfo').textContent = `Total laporan aktif di radar: ${reports.length} Laporan`;
+    document.getElementById('countDiproses').textContent = reports.length;
+    document.getElementById('emptyStateBox').classList.add('hidden');
+    event.target.reset();
+  }
+
+  // Jalankan deteksi lokasi otomatis saat halaman dibuka
+  detectUserLocation();
+</script>
     </body>
 </html>
