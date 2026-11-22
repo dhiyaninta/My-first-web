@@ -1,509 +1,509 @@
-<!DOCTYPE html>
-<html lang="id">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport"
-        content="width = device - width, initial - scale = 1.0">
-        <title>
-            Civic Radar - Pantau & laporkan Kondisi Sekitar
-        </title>
-        <link rel="stylesheet"
-        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-        <style>
-            *{box-sizing : border-box}
-            body{
-                margin: 0;
-                font-family: Inter, Arial, sans-serif;
-                background: #f5f7fb;
-                color: #182236
-            }
-            button, input, select, textarea{
-                font: inherit;
-            }
-            .app{
-                display: flex;
-                min-height: 100vh;
-            }
-            .sidebar{
-                width: 245px;
-                background: #ffff;
-                border-right: 1px slid #e7eaf0;
-                padding: 24px 16px;
-                position: fixed;
-                inset: 0 auto 0;
-                z-index: 1000;
-            }
-            .brand{
-                display: flex;
-                align-items: center;
-                gap: 10ox;
-                padding: 4px 10px 28px;
-            }
-            .logo{
-                width: 36px;
-                height: 36px;
-                border-radius: 14px;
-                background: #1d4ed8;
-                color: white;
-                display: grid;
-                place-items: center;
-                font-weight: 800;
-                font-size: 18px;
-            }
-            .brand strong{
-                font-size: 18px;
-            }
-            .brand span{
-                display: block;
-                color: #8a94a6;
-                font-size: 11px;
-                margin-top: 2px;
-            }
-            .nav title{
-                font-size: 11px;
-                text-transform: center;
-                color: #9aa3b2;
-                font-weight: 700;
-                padding: 0 12px 8px;
-            }
-            .nav a.active,
-            .nav a:hover{
-                background: #edf3ff;
-                color: #1d4ed8;
-                font-weight: 700;
-            }
-            .side-card{
-                position: absolute;
-                left: 16px;
-                right: 16px;
-                bottom: 22px;
-                background: #f5f8ff;
-                border: 1px solid #e1eaff;
-                border-radius: 14px;
-                padding: 14px;
-                color: #60708a;
-            }
-            .side-card b{
-                display:block;
-                color: #233044;
-                margin-bottom: 5px;
-            }
-
-            .main{
-                margin-left: 245px;
-                width: calc(100% - 245px);
-                padding: 24px 30px;
-            }
-            .topbar{
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 24px;
-            }
-            .page title h1{
-                margin: 0;
-                font-size: 25px;
-            }
-            .page title p{
-                margin: 5px 0 0;
-                color: #7a8494;
-                font-size: 13px;
-            }
-            .profile{
-                display: flex;
-                align-items: center;
-                gap: 10px;
-            }
-            .avatar{
-                width: 38px;
-                height: 38px;
-                border-radius: 50%;
-                background: #dbeafe;
-                color: #1d4ed8;
-                display: grid;
-                place-items: center;
-                font-weight: 800;
-            }
-            .profile small{
-                display: block;
-                color: #8a94a6;
-            }
-            /*cards*/
-            .stats{
-                display: grid;
-                grid-template-columns: repeat(4, 1fr);
-                gap: 15px;
-                margin-bottom: 18px;
-            }
-            .card{
-                background: #ffff;
-                border: 1px solid #e8ebf1;
-                border-radius: 15px;
-                box-shadow: 0 3px 12px rgba(30, 50, 80, .04);
-            }
-            .stat{
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-            }
-            .stat .icon{
-                width: 42px;
-                height: 42px;
-                border-radius: 12px;
-                background: #eef4ff;
-                display: grid;
-                place-items: center;
-                color: #1d4ed8;
-                font-size: 19px;
-            }
-            .stat b{
-                font-size: 25px;
-                display: block;
-            }
-            .stat span{
-                font-size: 12px;
-                color: #8993a3;
-            }
-            /*gae map e*/
-            .content{
-                display: grid;
-                grid-template-columns: minmax(0,1.6fr) minmax(310px,.8fr);
-                gap: 18px;
-            }
-            .map-card{
-                padding: 0;
-                overflow: hidden;
-            }
-            .card-head{
-                padding: 17px 18px;
-                border-bottom: 1px solid #edf0f4;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-            }
-
-            .card-head h2{
-                font-size: 15px;
-                margin: 0;
-            }
-            .card-head span{
-                font-size: 12px;
-                color: #8a94a6;
-            }
-            #map{
-                height: 460px;
-                width: 100%;
-            }
-            .map-tools{
-                position: absolute;
-                z-index: 500;
-                right: 30px;
-                margin-top: 12px;
-                display: flex;
-                gap: 7px;
-            }
-
-            .tool{
-                background: #ffff;
-                border: 1px solid #e5e8ed;
-                border-radius: 8px;
-                padding: 8px 11px;
-                cursor: pointer;
-                box-shadow: 0 2px 8px #00000010;
-                font-size: 12px;
-            }
-
-            .tool:hover{
-                background: #f4f7ff;
-            }
-            /* reprt */
-            .report-card h2{
-                font-size: 17px;
-                margin: 0 0 5px;
-            }
-            .muted {
-                font-size: 12px;
-                color: #8993a3;
-            }
-            .form-group{
-                margin-top: 14px;
-            }
-            .form-group label{
-                font-size: 12px;
-                font-weight: 700;
-                display: block;
-                margin-bottom: 6px;
-            }
-            input,
-            select,
-            textarea{
-                width: 100%;
-                border: 1px solid #dfe4eb;
-                border-radius: 9px;
-                padding: 10px 11px;
-                outline: none;
-                background: #ffff;
-            }
-            textarea{
-                resize: vertical;
-                min-height: 80px;
-            }
-
-            input focus,
-            select focus,
-            textarea fokus{
-                border-color: #4f7fe8;
-                box-shadow: 0 0 0 3px #dce7ff;
-            }
-
-            .primary{
-                width: 100%;
-                border: o;
-                background: #1d4ed8;
-                color: #ffff;
-                padding: 11px;
-                border-radius: 9px;
-                margin-top: 15px;
-                font-weight: 700;
-                cursor: pointer;
-            }
-
-            .primary:hover{
-                background: #1740b2;
-            }
-            .upload{
-                border: 1px dashed #cbd4e2;
-                padding: 13px;
-                border-radius: 9px;
-                text-align: center;
-                color: #7c8798;
-                font-size: 12px;
-                cursor: pointer;
-            }
-
-            .upload input{
-                display: none;
-            }
-
-            /*report lisnya wok*/
-            .reports{
-                margin-top: 18px;
-            }
-            .report-list{
-                display: grid;
-                grid-template-columns: repeat(3,1fr);
-                gap: 15px;
-            }
-
-            .report-item{
-                background: #ffff;
-                border: 1px solid #e8ebf1;
-                border-radius: 13px;
-                padding: 15px;
-            }
-
-            .report-top{
-                display: flex;
-                justify-content: space-between;
-                gap: 10px;
-            }
-            .report-item h3{
-                font-size: 14px;
-                margin: 0 0 5px;
-            }
-            .report-item p{
-                font-size: 12px;
-                color: #778294;
-                line-height: 1.5;
-                margin: 8px 0;
-            }
-            .badge{
-                font-size: 10px;
-                padding: 5px 8px;
-                border-radius: 20px;
-                white-space: nowrap;
-                font-weight: 700;
-            }
-
-            .wait{
-                background-color: #fff6dc #a56b00;
-            }
-            .proces{
-                background-color: #e8f0ff #2454b8;
-            }
-            .done{
-                background-color: #e7f8ef #16804d;
-            }
-            .report-meta{
-                font-size: 11px;
-                color: #9aa3b2;
-            }
-
-            .toast{
-                position: fixed;
-                right: 25px;
-                bottom: 25px;
-                background-color: #172033 white;
-                padding: 13px 17px;
-                border-radius: 10px;
-                box-shadow: 0 8px 23px #0003;
-                display: none;
-                font-size: 13px;
-            }
-
-            /*Bagian responsive nya wokk*/
-            @media (max-width: 950px) {
-                .sidebar{
-                    width: 72px;
-                    padding: 18px 10px;
+    <!DOCTYPE html>
+    <html lang="id">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport"
+            content="width = device - width, initial - scale = 1.0">
+            <title>
+                Civic Radar - Pantau & laporkan Kondisi Sekitar
+            </title>
+            <link rel="stylesheet"
+            href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+            <style>
+                *{box-sizing : border-box}
+                body{
+                    margin: 0;
+                    font-family: Inter, Arial, sans-serif;
+                    background: #f5f7fb;
+                    color: #182236
                 }
-                .brand div:last-child,
-                .nav-title,
-                .nav a span,
-                .side-card{
-                    display: none;
+                button, input, select, textarea{
+                    font: inherit;
+                }
+                .app{
+                    display: flex;
+                    min-height: 100vh;
+                }
+                .sidebar{
+                    width: 245px;
+                    background: #ffff;
+                    border-right: 1px slid #e7eaf0;
+                    padding: 24px 16px;
+                    position: fixed;
+                    inset: 0 auto 0;
+                    z-index: 1000;
                 }
                 .brand{
-                    justify-content: center;
-                    padding-bottom: 25px;
+                    display: flex;
+                    align-items: center;
+                    gap: 10ox;
+                    padding: 4px 10px 28px;
                 }
-                .main{
-                    margin-left: 72px;
-                    width: calc(100% - 72px);
+                .logo{
+                    width: 36px;
+                    height: 36px;
+                    border-radius: 14px;
+                    background: #1d4ed8;
+                    color: white;
+                    display: grid;
+                    place-items: center;
+                    font-weight: 800;
+                    font-size: 18px;
                 }
-                .stats{
-                    grid-template-columns: repeat(2,1fr);
+                .brand strong{
+                    font-size: 18px;
                 }
-                .content{
-                    grid-template-columns: 1fr;
+                .brand span{
+                    display: block;
+                    color: #8a94a6;
+                    font-size: 11px;
+                    margin-top: 2px;
                 }
-                .report-list{
-                    grid-template-columns: 1fr;
+                .nav title{
+                    font-size: 11px;
+                    text-transform: center;
+                    color: #9aa3b2;
+                    font-weight: 700;
+                    padding: 0 12px 8px;
                 }
-            }
-            @media (max-width:600px) {
-                .main{
+                .nav a.active,
+                .nav a:hover{
+                    background: #edf3ff;
+                    color: #1d4ed8;
+                    font-weight: 700;
+                }
+                .side-card{
+                    position: absolute;
+                    left: 16px;
+                    right: 16px;
+                    bottom: 22px;
+                    background: #f5f8ff;
+                    border: 1px solid #e1eaff;
+                    border-radius: 14px;
                     padding: 14px;
+                    color: #60708a;
+                }
+                .side-card b{
+                    display:block;
+                    color: #233044;
+                    margin-bottom: 5px;
+                }
+
+                .main{
+                    margin-left: 245px;
+                    width: calc(100% - 245px);
+                    padding: 24px 30px;
                 }
                 .topbar{
-                    align-items: flex-start;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 24px;
                 }
-                .profile div:not(.avatar){
-                    display: none;
+                .page title h1{
+                    margin: 0;
+                    font-size: 25px;
+                }
+                .page title p{
+                    margin: 5px 0 0;
+                    color: #7a8494;
+                    font-size: 13px;
+                }
+                .profile{
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                }
+                .avatar{
+                    width: 38px;
+                    height: 38px;
+                    border-radius: 50%;
+                    background: #dbeafe;
+                    color: #1d4ed8;
+                    display: grid;
+                    place-items: center;
+                    font-weight: 800;
+                }
+                .profile small{
+                    display: block;
+                    color: #8a94a6;
+                }
+                /*cards*/
+                .stats{
+                    display: grid;
+                    grid-template-columns: repeat(4, 1fr);
+                    gap: 15px;
+                    margin-bottom: 18px;
+                }
+                .card{
+                    background: #ffff;
+                    border: 1px solid #e8ebf1;
+                    border-radius: 15px;
+                    box-shadow: 0 3px 12px rgba(30, 50, 80, .04);
                 }
                 .stat{
-                    grid-template-columns: 1fr 1fr;
-                    gap: 8px;
-                }
-
-                .stats{
-                    grid-template-columns: 1fr 1fr;
-                    gap: 8px;
-                }
-                .stat b{
-                    font-size: 20px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
                 }
                 .stat .icon{
-                    width: 35px;
-                    height: 35px;
+                    width: 42px;
+                    height: 42px;
+                    border-radius: 12px;
+                    background: #eef4ff;
+                    display: grid;
+                    place-items: center;
+                    color: #1d4ed8;
+                    font-size: 19px;
+                }
+                .stat b{
+                    font-size: 25px;
+                    display: block;
+                }
+                .stat span{
+                    font-size: 12px;
+                    color: #8993a3;
+                }
+                /*gae map e*/
+                .content{
+                    display: grid;
+                    grid-template-columns: minmax(0,1.6fr) minmax(310px,.8fr);
+                    gap: 18px;
+                }
+                .map-card{
+                    padding: 0;
+                    overflow: hidden;
+                }
+                .card-head{
+                    padding: 17px 18px;
+                    border-bottom: 1px solid #edf0f4;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
                 }
 
+                .card-head h2{
+                    font-size: 15px;
+                    margin: 0;
+                }
+                .card-head span{
+                    font-size: 12px;
+                    color: #8a94a6;
+                }
                 #map{
-                    -ms-hyphenate-limit-lines: 370px;
+                    height: 460px;
+                    width: 100%;
                 }
                 .map-tools{
-                    right: 20px;
+                    position: absolute;
+                    z-index: 500;
+                    right: 30px;
+                    margin-top: 12px;
+                    display: flex;
+                    gap: 7px;
                 }
-                
-                .card-head{
-                    padding: 14px;
+
+                .tool{
+                    background: #ffff;
+                    border: 1px solid #e5e8ed;
+                    border-radius: 8px;
+                    padding: 8px 11px;
+                    cursor: pointer;
+                    box-shadow: 0 2px 8px #00000010;
+                    font-size: 12px;
                 }
-            }
-        </style>
-    </head>
-    <body>
-        <div class="app">
-            <!--Sidebar mewheheheh-->
-            <aside class="sidebar">
-                <div class="brand">
-                    <div class="logo">
-                        CR
-                    </div>
 
-                    <div>
-                        <strong>Civir Radar</strong>
-                        <span> Smart Citizen Platform</span>
-                    </div>
+                .tool:hover{
+                    background: #f4f7ff;
+                }
+                /* reprt */
+                .report-card h2{
+                    font-size: 17px;
+                    margin: 0 0 5px;
+                }
+                .muted {
+                    font-size: 12px;
+                    color: #8993a3;
+                }
+                .form-group{
+                    margin-top: 14px;
+                }
+                .form-group label{
+                    font-size: 12px;
+                    font-weight: 700;
+                    display: block;
+                    margin-bottom: 6px;
+                }
+                input,
+                select,
+                textarea{
+                    width: 100%;
+                    border: 1px solid #dfe4eb;
+                    border-radius: 9px;
+                    padding: 10px 11px;
+                    outline: none;
+                    background: #ffff;
+                }
+                textarea{
+                    resize: vertical;
+                    min-height: 80px;
+                }
 
-                </div>
-                <div class="nav-title">
-                    Menu
-                </div>
-                <nav class="nav">
-                    <a class="active" onclick="scrollToId('dashboard')">
-                        * <span>Dashboard</span>
-                    </a>
-                    <a onclick="scrollToId('mapSection')">
-                        O <span>Peta Laporan </span>
-                    </a>
-                    <a onclick="scrollToId('reportForm')">
-                        + <span>Buat Lporan</span>
-                    </a>
-                    <a onclick="scrollToId('reports')">
-                        = <span>Riwayat Laporan</span>
-                    </a>
+                input focus,
+                select focus,
+                textarea fokus{
+                    border-color: #4f7fe8;
+                    box-shadow: 0 0 0 3px #dce7ff;
+                }
 
-                </nav>
+                .primary{
+                    width: 100%;
+                    border: o;
+                    background: #1d4ed8;
+                    color: #ffff;
+                    padding: 11px;
+                    border-radius: 9px;
+                    margin-top: 15px;
+                    font-weight: 700;
+                    cursor: pointer;
+                }
 
-                <div class="side-card">
-                    <b> Civic Radar Alderts</b>
+                .primary:hover{
+                    background: #1740b2;
+                }
+                .upload{
+                    border: 1px dashed #cbd4e2;
+                    padding: 13px;
+                    border-radius: 9px;
+                    text-align: center;
+                    color: #7c8798;
+                    font-size: 12px;
+                    cursor: pointer;
+                }
 
-                    Laporkan masalah lingkungan sekitar agar dapat dipantau dan ditinaklanjuti bersama!
-                </div>
-            </aside>
-            <!--MAIN -_- -->
-            <main class="main">
-                <div class="topbar" id="dashboard">
-                    <div class="page-title">
-                        <h1>
-                            Dashboard Civic Radar
-                        </h1>
+                .upload input{
+                    display: none;
+                }
 
-                        <p>
-                            Pantau kondisi fasilitas umum dan lingkungan sekitar anda!  
-                        </p>
+                /*report lisnya wok*/
+                .reports{
+                    margin-top: 18px;
+                }
+                .report-list{
+                    display: grid;
+                    grid-template-columns: repeat(3,1fr);
+                    gap: 15px;
+                }
 
-                    </div>
+                .report-item{
+                    background: #ffff;
+                    border: 1px solid #e8ebf1;
+                    border-radius: 13px;
+                    padding: 15px;
+                }
 
-                    <div class="profile">
+                .report-top{
+                    display: flex;
+                    justify-content: space-between;
+                    gap: 10px;
+                }
+                .report-item h3{
+                    font-size: 14px;
+                    margin: 0 0 5px;
+                }
+                .report-item p{
+                    font-size: 12px;
+                    color: #778294;
+                    line-height: 1.5;
+                    margin: 8px 0;
+                }
+                .badge{
+                    font-size: 10px;
+                    padding: 5px 8px;
+                    border-radius: 20px;
+                    white-space: nowrap;
+                    font-weight: 700;
+                }
+
+                .wait{
+                    background-color: #fff6dc #a56b00;
+                }
+                .proces{
+                    background-color: #e8f0ff #2454b8;
+                }
+                .done{
+                    background-color: #e7f8ef #16804d;
+                }
+                .report-meta{
+                    font-size: 11px;
+                    color: #9aa3b2;
+                }
+
+                .toast{
+                    position: fixed;
+                    right: 25px;
+                    bottom: 25px;
+                    background-color: #172033 white;
+                    padding: 13px 17px;
+                    border-radius: 10px;
+                    box-shadow: 0 8px 23px #0003;
+                    display: none;
+                    font-size: 13px;
+                }
+
+                /*Bagian responsive nya wokk*/
+                @media (max-width: 950px) {
+                    .sidebar{
+                        width: 72px;
+                        padding: 18px 10px;
+                    }
+                    .brand div:last-child,
+                    .nav-title,
+                    .nav a span,
+                    .side-card{
+                        display: none;
+                    }
+                    .brand{
+                        justify-content: center;
+                        padding-bottom: 25px;
+                    }
+                    .main{
+                        margin-left: 72px;
+                        width: calc(100% - 72px);
+                    }
+                    .stats{
+                        grid-template-columns: repeat(2,1fr);
+                    }
+                    .content{
+                        grid-template-columns: 1fr;
+                    }
+                    .report-list{
+                        grid-template-columns: 1fr;
+                    }
+                }
+                @media (max-width:600px) {
+                    .main{
+                        padding: 14px;
+                    }
+                    .topbar{
+                        align-items: flex-start;
+                    }
+                    .profile div:not(.avatar){
+                        display: none;
+                    }
+                    .stat{
+                        grid-template-columns: 1fr 1fr;
+                        gap: 8px;
+                    }
+
+                    .stats{
+                        grid-template-columns: 1fr 1fr;
+                        gap: 8px;
+                    }
+                    .stat b{
+                        font-size: 20px;
+                    }
+                    .stat .icon{
+                        width: 35px;
+                        height: 35px;
+                    }
+
+                    #map{
+                        -ms-hyphenate-limit-lines: 370px;
+                    }
+                    .map-tools{
+                        right: 20px;
+                    }
+                    
+                    .card-head{
+                        padding: 14px;
+                    }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="app">
+                <!--Sidebar mewheheheh-->
+                <aside class="sidebar">
+                    <div class="brand">
+                        <div class="logo">
+                            CR
+                        </div>
 
                         <div>
-                            <b>Warga</b>
-                            <small>Pengguna Civic Radar</small>
-                        </div>
-                        <div class="avatar">
-                            W
+                            <strong>Civir Radar</strong>
+                            <span> Smart Citizen Platform</span>
                         </div>
 
                     </div>
+                    <div class="nav-title">
+                        Menu
+                    </div>
+                    <nav class="nav">
+                        <a class="active" onclick="scrollToId('dashboard')">
+                            * <span>Dashboard</span>
+                        </a>
+                        <a onclick="scrollToId('mapSection')">
+                            O <span>Peta Laporan </span>
+                        </a>
+                        <a onclick="scrollToId('reportForm')">
+                            + <span>Buat Lporan</span>
+                        </a>
+                        <a onclick="scrollToId('reports')">
+                            = <span>Riwayat Laporan</span>
+                        </a>
 
-                </div>
-                <!-- Satistics -->
-                 <section class="stats">
-                    <div class="cars stat">
-                        <div>
-                            <span> Total Laporan</span>
-                            <b id="total">0</b>
+                    </nav>
+
+                    <div class="side-card">
+                        <b> Civic Radar Alderts</b>
+
+                        Laporkan masalah lingkungan sekitar agar dapat dipantau dan ditinaklanjuti bersama!
+                    </div>
+                </aside>
+                <!--MAIN -_- -->
+                <main class="main">
+                    <div class="topbar" id="dashboard">
+                        <div class="page-title">
+                            <h1>
+                                Dashboard Civic Radar
+                            </h1>
+
+                            <p>
+                                Pantau kondisi fasilitas umum dan lingkungan sekitar anda!  
+                            </p>
+
                         </div>
 
-                        <div class="icon">
-                            =
+                        <div class="profile">
+
+                            <div>
+                                <b>Warga</b>
+                                <small>Pengguna Civic Radar</small>
+                            </div>
+                            <div class="avatar">
+                                W
+                            </div>
+
                         </div>
 
                     </div>
+                    <!-- Satistics -->
+                    <section class="stats">
+                        <div class="cars stat">
+                            <div>
+                                <span> Total Laporan</span>
+                                <b id="total">0</b>
+                            </div>
 
-                 </section>
-            </main>
-        </div>
-    </body>
-</html>
+                            <div class="icon">
+                                =
+                            </div>
+
+                        </div>
+
+                    </section>
+                </main>
+            </div>
+        </body>
+    </html>
