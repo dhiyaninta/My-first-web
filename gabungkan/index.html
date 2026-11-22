@@ -1,509 +1,1083 @@
-    <!DOCTYPE html>
-    <html lang="id">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport"
-            content="width = device - width, initial - scale = 1.0">
-            <title>
-                Civic Radar - Pantau & laporkan Kondisi Sekitar
-            </title>
-            <link rel="stylesheet"
-            href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-            <style>
-                *{box-sizing : border-box}
-                body{
-                    margin: 0;
-                    font-family: Inter, Arial, sans-serif;
-                    background: #f5f7fb;
-                    color: #182236
-                }
-                button, input, select, textarea{
-                    font: inherit;
-                }
-                .app{
-                    display: flex;
-                    min-height: 100vh;
-                }
-                .sidebar{
-                    width: 245px;
-                    background: #ffff;
-                    border-right: 1px slid #e7eaf0;
-                    padding: 24px 16px;
-                    position: fixed;
-                    inset: 0 auto 0;
-                    z-index: 1000;
-                }
-                .brand{
-                    display: flex;
-                    align-items: center;
-                    gap: 10ox;
-                    padding: 4px 10px 28px;
-                }
-                .logo{
-                    width: 36px;
-                    height: 36px;
-                    border-radius: 14px;
-                    background: #1d4ed8;
-                    color: white;
-                    display: grid;
-                    place-items: center;
-                    font-weight: 800;
-                    font-size: 18px;
-                }
-                .brand strong{
-                    font-size: 18px;
-                }
-                .brand span{
-                    display: block;
-                    color: #8a94a6;
-                    font-size: 11px;
-                    margin-top: 2px;
-                }
-                .nav title{
-                    font-size: 11px;
-                    text-transform: center;
-                    color: #9aa3b2;
-                    font-weight: 700;
-                    padding: 0 12px 8px;
-                }
-                .nav a.active,
-                .nav a:hover{
-                    background: #edf3ff;
-                    color: #1d4ed8;
-                    font-weight: 700;
-                }
-                .side-card{
-                    position: absolute;
-                    left: 16px;
-                    right: 16px;
-                    bottom: 22px;
-                    background: #f5f8ff;
-                    border: 1px solid #e1eaff;
-                    border-radius: 14px;
-                    padding: 14px;
-                    color: #60708a;
-                }
-                .side-card b{
-                    display:block;
-                    color: #233044;
-                    margin-bottom: 5px;
-                }
+<!DOCTYPE html>
+<html lang="id">
 
-                .main{
-                    margin-left: 245px;
-                    width: calc(100% - 245px);
-                    padding: 24px 30px;
-                }
-                .topbar{
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    margin-bottom: 24px;
-                }
-                .page title h1{
-                    margin: 0;
-                    font-size: 25px;
-                }
-                .page title p{
-                    margin: 5px 0 0;
-                    color: #7a8494;
-                    font-size: 13px;
-                }
-                .profile{
-                    display: flex;
-                    align-items: center;
-                    gap: 10px;
-                }
-                .avatar{
-                    width: 38px;
-                    height: 38px;
-                    border-radius: 50%;
-                    background: #dbeafe;
-                    color: #1d4ed8;
-                    display: grid;
-                    place-items: center;
-                    font-weight: 800;
-                }
-                .profile small{
-                    display: block;
-                    color: #8a94a6;
-                }
-                /*cards*/
-                .stats{
-                    display: grid;
-                    grid-template-columns: repeat(4, 1fr);
-                    gap: 15px;
-                    margin-bottom: 18px;
-                }
-                .card{
-                    background: #ffff;
-                    border: 1px solid #e8ebf1;
-                    border-radius: 15px;
-                    box-shadow: 0 3px 12px rgba(30, 50, 80, .04);
-                }
-                .stat{
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                }
-                .stat .icon{
-                    width: 42px;
-                    height: 42px;
-                    border-radius: 12px;
-                    background: #eef4ff;
-                    display: grid;
-                    place-items: center;
-                    color: #1d4ed8;
-                    font-size: 19px;
-                }
-                .stat b{
-                    font-size: 25px;
-                    display: block;
-                }
-                .stat span{
-                    font-size: 12px;
-                    color: #8993a3;
-                }
-                /*gae map e*/
-                .content{
-                    display: grid;
-                    grid-template-columns: minmax(0,1.6fr) minmax(310px,.8fr);
-                    gap: 18px;
-                }
-                .map-card{
-                    padding: 0;
-                    overflow: hidden;
-                }
-                .card-head{
-                    padding: 17px 18px;
-                    border-bottom: 1px solid #edf0f4;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                }
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Civic Radar - Pantau &amp; Laporkan Kondisi Sekitar</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 
-                .card-head h2{
-                    font-size: 15px;
-                    margin: 0;
-                }
-                .card-head span{
-                    font-size: 12px;
-                    color: #8a94a6;
-                }
-                #map{
-                    height: 460px;
-                    width: 100%;
-                }
-                .map-tools{
-                    position: absolute;
-                    z-index: 500;
-                    right: 30px;
-                    margin-top: 12px;
-                    display: flex;
-                    gap: 7px;
-                }
+    <style>
+        /* ===== 1. VARIABEL & RESET ===== */
+        :root {
+            --primary: #1d4ed8;
+            --primary-dark: #1740b2;
+            --soft: #edf3ff;
+            --bg: #f5f7fb;
+            --surface: #fff;
+            --text: #182236;
+            --muted: #8993a3;
+            --border: #e8ebf1;
+            --wait: #a56b00;
+            --wait-bg: #fff6dc;
+            --proces: #2454b8;
+            --proces-bg: #e8f0ff;
+            --done: #16804d;
+            --done-bg: #e7f8ef;
+            --danger: #c62828;
+            --radius: 14px;
+            --side: 240px;
+        }
 
-                .tool{
-                    background: #ffff;
-                    border: 1px solid #e5e8ed;
-                    border-radius: 8px;
-                    padding: 8px 11px;
-                    cursor: pointer;
-                    box-shadow: 0 2px 8px #00000010;
-                    font-size: 12px;
-                }
+        * {
+            box-sizing: border-box
+        }
 
-                .tool:hover{
-                    background: #f4f7ff;
-                }
-                /* reprt */
-                .report-card h2{
-                    font-size: 17px;
-                    margin: 0 0 5px;
-                }
-                .muted {
-                    font-size: 12px;
-                    color: #8993a3;
-                }
-                .form-group{
-                    margin-top: 14px;
-                }
-                .form-group label{
-                    font-size: 12px;
-                    font-weight: 700;
-                    display: block;
-                    margin-bottom: 6px;
-                }
-                input,
-                select,
-                textarea{
-                    width: 100%;
-                    border: 1px solid #dfe4eb;
-                    border-radius: 9px;
-                    padding: 10px 11px;
-                    outline: none;
-                    background: #ffff;
-                }
-                textarea{
-                    resize: vertical;
-                    min-height: 80px;
-                }
+        body {
+            margin: 0;
+            font-family: Inter, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text)
+        }
 
-                input focus,
-                select focus,
-                textarea fokus{
-                    border-color: #4f7fe8;
-                    box-shadow: 0 0 0 3px #dce7ff;
-                }
+        button,
+        input,
+        select,
+        textarea {
+            font: inherit
+        }
 
-                .primary{
-                    width: 100%;
-                    border: o;
-                    background: #1d4ed8;
-                    color: #ffff;
-                    padding: 11px;
-                    border-radius: 9px;
-                    margin-top: 15px;
-                    font-weight: 700;
-                    cursor: pointer;
-                }
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: 0 3px 12px rgba(30, 50, 80, .04)
+        }
 
-                .primary:hover{
-                    background: #1740b2;
-                }
-                .upload{
-                    border: 1px dashed #cbd4e2;
-                    padding: 13px;
-                    border-radius: 9px;
-                    text-align: center;
-                    color: #7c8798;
-                    font-size: 12px;
-                    cursor: pointer;
-                }
+        .muted {
+            font-size: 12px;
+            color: var(--muted)
+        }
 
-                .upload input{
-                    display: none;
-                }
+        /* ===== 2. LAYOUT & SIDEBAR ===== */
+        .sidebar {
+            position: fixed;
+            inset: 0 auto 0;
+            width: var(--side);
+            padding: 24px 16px;
+            background: var(--surface);
+            border-right: 1px solid #e7eaf0;
+            z-index: 1000
+        }
 
-                /*report lisnya wok*/
-                .reports{
-                    margin-top: 18px;
-                }
-                .report-list{
-                    display: grid;
-                    grid-template-columns: repeat(3,1fr);
-                    gap: 15px;
-                }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 4px 10px 26px
+        }
 
-                .report-item{
-                    background: #ffff;
-                    border: 1px solid #e8ebf1;
-                    border-radius: 13px;
-                    padding: 15px;
-                }
+        .logo {
+            display: grid;
+            place-items: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 12px;
+            background: var(--primary);
+            color: #fff;
+            font-weight: 800
+        }
 
-                .report-top{
-                    display: flex;
-                    justify-content: space-between;
-                    gap: 10px;
-                }
-                .report-item h3{
-                    font-size: 14px;
-                    margin: 0 0 5px;
-                }
-                .report-item p{
-                    font-size: 12px;
-                    color: #778294;
-                    line-height: 1.5;
-                    margin: 8px 0;
-                }
-                .badge{
-                    font-size: 10px;
-                    padding: 5px 8px;
-                    border-radius: 20px;
-                    white-space: nowrap;
-                    font-weight: 700;
-                }
+        .brand strong {
+            font-size: 18px
+        }
 
-                .wait{
-                    background-color: #fff6dc #a56b00;
-                }
-                .proces{
-                    background-color: #e8f0ff #2454b8;
-                }
-                .done{
-                    background-color: #e7f8ef #16804d;
-                }
-                .report-meta{
-                    font-size: 11px;
-                    color: #9aa3b2;
-                }
+        .brand small {
+            display: block;
+            margin-top: 2px;
+            font-size: 11px;
+            color: #8a94a6
+        }
 
-                .toast{
-                    position: fixed;
-                    right: 25px;
-                    bottom: 25px;
-                    background-color: #172033 white;
-                    padding: 13px 17px;
-                    border-radius: 10px;
-                    box-shadow: 0 8px 23px #0003;
-                    display: none;
-                    font-size: 13px;
-                }
+        .nav a {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 4px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            font-size: 14px;
+            color: #4b5870;
+            cursor: pointer
+        }
 
-                /*Bagian responsive nya wokk*/
-                @media (max-width: 950px) {
-                    .sidebar{
-                        width: 72px;
-                        padding: 18px 10px;
-                    }
-                    .brand div:last-child,
-                    .nav-title,
-                    .nav a span,
-                    .side-card{
-                        display: none;
-                    }
-                    .brand{
-                        justify-content: center;
-                        padding-bottom: 25px;
-                    }
-                    .main{
-                        margin-left: 72px;
-                        width: calc(100% - 72px);
-                    }
-                    .stats{
-                        grid-template-columns: repeat(2,1fr);
-                    }
-                    .content{
-                        grid-template-columns: 1fr;
-                    }
-                    .report-list{
-                        grid-template-columns: 1fr;
-                    }
-                }
-                @media (max-width:600px) {
-                    .main{
-                        padding: 14px;
-                    }
-                    .topbar{
-                        align-items: flex-start;
-                    }
-                    .profile div:not(.avatar){
-                        display: none;
-                    }
-                    .stat{
-                        grid-template-columns: 1fr 1fr;
-                        gap: 8px;
-                    }
+        .nav a:hover,
+        .nav a.active {
+            background: var(--soft);
+            color: var(--primary);
+            font-weight: 700
+        }
 
-                    .stats{
-                        grid-template-columns: 1fr 1fr;
-                        gap: 8px;
-                    }
-                    .stat b{
-                        font-size: 20px;
-                    }
-                    .stat .icon{
-                        width: 35px;
-                        height: 35px;
-                    }
+        .nav svg {
+            width: 18px;
+            height: 18px;
+            flex: none;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round
+        }
 
-                    #map{
-                        -ms-hyphenate-limit-lines: 370px;
-                    }
-                    .map-tools{
-                        right: 20px;
-                    }
-                    
-                    .card-head{
-                        padding: 14px;
-                    }
-                }
-            </style>
-        </head>
-        <body>
-            <div class="app">
-                <!--Sidebar mewheheheh-->
-                <aside class="sidebar">
-                    <div class="brand">
-                        <div class="logo">
-                            CR
-                        </div>
+        .side-note {
+            position: absolute;
+            left: 16px;
+            right: 16px;
+            bottom: 22px;
+            padding: 14px;
+            border: 1px solid #e1eaff;
+            border-radius: 14px;
+            background: #f5f8ff;
+            font-size: 12px;
+            line-height: 1.5;
+            color: #60708a
+        }
 
-                        <div>
-                            <strong>Civir Radar</strong>
-                            <span> Smart Citizen Platform</span>
-                        </div>
+        .main {
+            margin-left: var(--side);
+            padding: 24px 30px
+        }
 
-                    </div>
-                    <div class="nav-title">
-                        Menu
-                    </div>
-                    <nav class="nav">
-                        <a class="active" onclick="scrollToId('dashboard')">
-                            * <span>Dashboard</span>
-                        </a>
-                        <a onclick="scrollToId('mapSection')">
-                            O <span>Peta Laporan </span>
-                        </a>
-                        <a onclick="scrollToId('reportForm')">
-                            + <span>Buat Lporan</span>
-                        </a>
-                        <a onclick="scrollToId('reports')">
-                            = <span>Riwayat Laporan</span>
-                        </a>
+        .main>* {
+            max-width: 1240px;
+            margin-left: auto;
+            margin-right: auto
+        }
 
-                    </nav>
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 22px
+        }
 
-                    <div class="side-card">
-                        <b> Civic Radar Alderts</b>
+        .topbar h1 {
+            margin: 0;
+            font-size: 24px
+        }
 
-                        Laporkan masalah lingkungan sekitar agar dapat dipantau dan ditinaklanjuti bersama!
-                    </div>
-                </aside>
-                <!--MAIN -_- -->
-                <main class="main">
-                    <div class="topbar" id="dashboard">
-                        <div class="page-title">
-                            <h1>
-                                Dashboard Civic Radar
-                            </h1>
+        .topbar p {
+            margin: 5px 0 0;
+            font-size: 13px;
+            color: #7a8494
+        }
 
-                            <p>
-                                Pantau kondisi fasilitas umum dan lingkungan sekitar anda!  
-                            </p>
+        .admin-switch {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer
+        }
 
-                        </div>
+        .admin-switch input {
+            width: auto
+        }
 
-                        <div class="profile">
+        /* ===== 3. STATISTIK ===== */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin-bottom: 18px
+        }
 
-                            <div>
-                                <b>Warga</b>
-                                <small>Pengguna Civic Radar</small>
-                            </div>
-                            <div class="avatar">
-                                W
-                            </div>
+        .stat {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px
+        }
 
-                        </div>
+        .stat b {
+            display: block;
+            font-size: 26px
+        }
 
-                    </div>
-                    <!-- Satistics -->
-                    <section class="stats">
-                        <div class="cars stat">
-                            <div>
-                                <span> Total Laporan</span>
-                                <b id="total">0</b>
-                            </div>
+        .stat span {
+            font-size: 12px;
+            color: var(--muted)
+        }
 
-                            <div class="icon">
-                                =
-                            </div>
+        .stat .ico {
+            display: grid;
+            place-items: center;
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: var(--soft);
+            color: var(--primary);
+            font-weight: 800
+        }
 
-                        </div>
+        .stat.wait .ico {
+            background: var(--wait-bg);
+            color: var(--wait)
+        }
 
-                    </section>
-                </main>
+        .stat.proces .ico {
+            background: var(--proces-bg);
+            color: var(--proces)
+        }
+
+        .stat.done .ico {
+            background: var(--done-bg);
+            color: var(--done)
+        }
+
+        /* ===== 4. PETA & FORM ===== */
+        .content {
+            display: grid;
+            grid-template-columns: minmax(0, 1.6fr) minmax(310px, .8fr);
+            gap: 18px;
+            align-items: stretch
+        }
+
+        .map-card {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden
+        }
+
+        .map-wrap {
+            position: relative;
+            flex: 1;
+            min-height: 420px
+        }
+
+        .card-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            padding: 16px 18px;
+            border-bottom: 1px solid #edf0f4
+        }
+
+        .card-head h2 {
+            margin: 0;
+            font-size: 15px
+        }
+
+        #map {
+            position: absolute;
+            inset: 0
+        }
+
+        .map-tools {
+            position: absolute;
+            z-index: 500;
+            top: 12px;
+            right: 12px;
+            display: flex;
+            gap: 7px
+        }
+
+        .tool {
+            padding: 8px 11px;
+            border: 1px solid #e5e8ed;
+            border-radius: 8px;
+            background: #fff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, .12);
+            font-size: 12px;
+            cursor: pointer
+        }
+
+        .tool:hover {
+            background: #f4f7ff
+        }
+
+        .form-card {
+            padding: 18px
+        }
+
+        .form-card h2 {
+            margin: 0 0 4px;
+            font-size: 17px
+        }
+
+        .field {
+            margin-top: 13px
+        }
+
+        .field label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 12px;
+            font-weight: 700
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px 11px;
+            border: 1px solid #dfe4eb;
+            border-radius: 9px;
+            background: #fff;
+            outline: none
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: #4f7fe8;
+            box-shadow: 0 0 0 3px #dce7ff
+        }
+
+        textarea {
+            min-height: 80px;
+            resize: vertical
+        }
+
+        .row {
+            display: flex;
+            gap: 8px
+        }
+
+        .btn {
+            padding: 10px 14px;
+            border: 0;
+            border-radius: 9px;
+            background: var(--primary);
+            color: #fff;
+            font-weight: 700;
+            cursor: pointer
+        }
+
+        .btn:hover {
+            background: var(--primary-dark)
+        }
+
+        .btn.block {
+            width: 100%;
+            margin-top: 15px;
+            padding: 11px
+        }
+
+        .btn.ghost {
+            border: 1px solid #cfd8ea;
+            background: #f5f8ff;
+            color: var(--primary);
+            font-size: 12px;
+            white-space: nowrap
+        }
+
+        .btn.ghost:hover {
+            background: var(--proces-bg)
+        }
+
+        .upload {
+            display: block;
+            padding: 13px;
+            border: 1px dashed #cbd4e2;
+            border-radius: 9px;
+            text-align: center;
+            font-size: 12px;
+            color: #7c8798;
+            cursor: pointer
+        }
+
+        .upload input {
+            display: none
+        }
+
+        #preview {
+            display: none;
+            width: 100%;
+            max-height: 140px;
+            margin-top: 8px;
+            border-radius: 9px;
+            object-fit: cover
+        }
+
+        /* ===== 5. DAFTAR LAPORAN ===== */
+        .reports {
+            margin-top: 18px;
+            padding: 18px
+        }
+
+        .filters {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin: 12px 0 16px
+        }
+
+        .filters input {
+            flex: 2;
+            min-width: 160px
+        }
+
+        .filters select {
+            flex: 1;
+            min-width: 130px
+        }
+
+        .list {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px
+        }
+
+        .item {
+            display: flex;
+            flex-direction: column;
+            padding: 14px;
+            border: 1px solid var(--border);
+            border-radius: 13px;
+            background: #fff
+        }
+
+        .when {
+            margin-top: auto;
+            padding-top: 6px
+        }
+
+        .item:hover {
+            border-color: #b9cdfa
+        }
+
+        .item img {
+            width: 100%;
+            height: 110px;
+            margin-bottom: 8px;
+            border-radius: 9px;
+            object-fit: cover
+        }
+
+        .item h3 {
+            margin: 0 0 4px;
+            font-size: 14px
+        }
+
+        .item p {
+            margin: 8px 0;
+            font-size: 12px;
+            line-height: 1.5;
+            color: #778294
+        }
+
+        .top {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px
+        }
+
+        .meta {
+            font-size: 11px;
+            color: #9aa3b2
+        }
+
+        .badge {
+            height: fit-content;
+            padding: 5px 8px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 700;
+            white-space: nowrap
+        }
+
+        .badge.wait {
+            background: var(--wait-bg);
+            color: var(--wait)
+        }
+
+        .badge.proces {
+            background: var(--proces-bg);
+            color: var(--proces)
+        }
+
+        .badge.done {
+            background: var(--done-bg);
+            color: var(--done)
+        }
+
+        .history {
+            margin: 8px 0 0;
+            padding: 8px 10px;
+            border-left: 3px solid #dbe4f5;
+            background: #f8faff;
+            font-size: 11px;
+            line-height: 1.6;
+            color: #6b7788
+        }
+
+        .actions {
+            display: flex;
+            gap: 6px;
+            margin-top: 10px;
+            flex-wrap: wrap
+        }
+
+        .actions button {
+            padding: 6px 9px;
+            border: 1px solid #dfe4eb;
+            border-radius: 8px;
+            background: #fff;
+            font-size: 11px;
+            cursor: pointer
+        }
+
+        .actions button:hover {
+            background: #f4f7ff
+        }
+
+        .actions .on {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: #fff
+        }
+
+        .actions .del {
+            margin-left: auto;
+            color: var(--danger)
+        }
+
+        .voted {
+            border-color: var(--primary) !important;
+            color: var(--primary)
+        }
+
+        .admin-only {
+            display: none
+        }
+
+        body.admin .admin-only {
+            display: flex
+        }
+
+        .empty {
+            grid-column: 1/-1;
+            padding: 26px;
+            text-align: center;
+            font-size: 13px;
+            color: var(--muted)
+        }
+
+        /* ===== 6. KOMPONEN KECIL ===== */
+        .toast {
+            position: fixed;
+            right: 24px;
+            bottom: 24px;
+            z-index: 2000;
+            display: none;
+            padding: 13px 17px;
+            border-radius: 10px;
+            background: #172033;
+            color: #fff;
+            font-size: 13px;
+            box-shadow: 0 8px 23px rgba(0, 0, 0, .2)
+        }
+
+        .pin {
+            width: 26px;
+            height: 26px;
+            border: 2px solid #fff;
+            border-radius: 50% 50% 50% 0;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, .3);
+            transform: rotate(-45deg)
+        }
+
+        .pin.wait {
+            background: #e0a100
+        }
+
+        .pin.proces {
+            background: var(--proces)
+        }
+
+        .pin.done {
+            background: var(--done)
+        }
+
+        .pin.me {
+            background: #e11d48;
+            border-radius: 50%
+        }
+
+        /* ===== 7. RESPONSIVE ===== */
+        @media(max-width:950px) {
+            :root {
+                --side: 72px
+            }
+
+            .sidebar {
+                padding: 18px 10px
+            }
+
+            .brand div,
+            .nav a span,
+            .side-note {
+                display: none
+            }
+
+            .brand {
+                justify-content: center
+            }
+
+            .nav a {
+                justify-content: center
+            }
+
+            .stats {
+                grid-template-columns: repeat(2, 1fr)
+            }
+
+            .content,
+            .list {
+                grid-template-columns: 1fr
+            }
+        }
+
+        @media(max-width:600px) {
+            .main {
+                margin-left: 0;
+                padding: 14px 14px 84px
+            }
+
+            .topbar {
+                flex-direction: column;
+                align-items: flex-start
+            }
+
+            .map-wrap {
+                min-height: 360px
+            }
+
+            .sidebar {
+                inset: auto 0 0 0;
+                width: 100%;
+                height: 62px;
+                padding: 6px 8px;
+                border-right: 0;
+                border-top: 1px solid #e7eaf0
+            }
+
+            .brand,
+            .side-note {
+                display: none
+            }
+
+            .nav {
+                display: flex;
+                justify-content: space-around
+            }
+
+            .nav a {
+                flex-direction: column;
+                gap: 2px;
+                margin: 0;
+                padding: 6px 12px;
+                font-size: 10px
+            }
+
+            .nav a span {
+                display: inline
+            }
+
+            .toast {
+                bottom: 76px;
+                right: 12px
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="logo">CR</div>
+            <div><strong>Civic Radar</strong><small>Smart Citizen Platform</small></div>
+        </div>
+        <nav class="nav" id="nav">
+            <a class="active" data-go="top"><svg viewBox="0 0 24 24">
+                    <rect x="3" y="3" width="7" height="7" />
+                    <rect x="14" y="3" width="7" height="7" />
+                    <rect x="3" y="14" width="7" height="7" />
+                    <rect x="14" y="14" width="7" height="7" />
+                </svg><span>Dashboard</span></a>
+            <a data-go="mapSection"><svg viewBox="0 0 24 24">
+                    <path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z" />
+                    <circle cx="12" cy="10" r="2.5" />
+                </svg><span>Peta</span></a>
+            <a data-go="formSection"><svg viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="9" />
+                    <path d="M12 8v8M8 12h8" />
+                </svg><span>Lapor</span></a>
+            <a data-go="listSection"><svg viewBox="0 0 24 24">
+                    <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />
+                </svg><span>Riwayat</span></a>
+        </nav>
+        <div class="side-note"><b>Transparan &amp; terpantau</b><br>Setiap perubahan status laporan tercatat lengkap
+            dengan waktunya.</div>
+    </aside>
+
+    <main class="main" id="top">
+        <!-- ===== HEADER ===== -->
+        <header class="topbar">
+            <div>
+                <h1>Dashboard Civic Radar</h1>
+                <p>Pantau kondisi fasilitas umum dan lingkungan sekitar Anda!</p>
             </div>
-        </body>
-    </html>
+            <label class="admin-switch" title="Hanya petugas yang boleh mengubah status laporan">
+                <input type="checkbox" id="adminToggle"> Mode Petugas
+            </label>
+        </header>
+
+        <!-- ===== STATISTIK ===== -->
+        <section class="stats">
+            <div class="card stat">
+                <div><span>Total Laporan</span><b id="sTotal">0</b></div>
+                <div class="ico">=</div>
+            </div>
+            <div class="card stat wait">
+                <div><span>Menunggu</span><b id="sWait">0</b></div>
+                <div class="ico">!</div>
+            </div>
+            <div class="card stat proces">
+                <div><span>Diproses</span><b id="sProces">0</b></div>
+                <div class="ico">~</div>
+            </div>
+            <div class="card stat done">
+                <div><span>Selesai</span><b id="sDone">0</b></div>
+                <div class="ico">&#10003;</div>
+            </div>
+        </section>
+
+        <!-- ===== PETA & FORM ===== -->
+        <section class="content">
+            <div class="card map-card" id="mapSection">
+                <div class="card-head">
+                    <h2>Peta Laporan</h2><span class="muted">Klik peta untuk memilih lokasi</span>
+                </div>
+                <div class="map-wrap">
+                    <div class="map-tools">
+                        <button class="tool" type="button" id="btnLocate">Lokasi Saya</button>
+                        <button class="tool" type="button" id="btnFit">Lihat Semua</button>
+                    </div>
+                    <div id="map"></div>
+                </div>
+            </div>
+
+            <div class="card form-card" id="formSection">
+                <h2>Buat Laporan</h2>
+                <p class="muted">Isi data berikut untuk melaporkan masalah di sekitar Anda.</p>
+                <form id="form" novalidate>
+                    <div class="field">
+                        <label for="category">Kategori Masalah</label>
+                        <select id="category">
+                            <option value="">Pilih kategori</option>
+                            <option>Jalan Rusak</option>
+                            <option>Sampah Menumpuk</option>
+                            <option>Lampu Jalan Mati</option>
+                            <option>Banjir / Drainase</option>
+                            <option>Fasilitas Umum Rusak</option>
+                            <option>Lainnya</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="title">Judul Laporan</label>
+                        <input id="title" maxlength="80" placeholder="Contoh: Lubang besar di Jl. Veteran">
+                    </div>
+                    <div class="field">
+                        <label for="location">Lokasi</label>
+                        <div class="row">
+                            <input id="location" readonly placeholder="Klik peta atau gunakan GPS">
+                            <button class="btn ghost" type="button" id="btnGps">Gunakan GPS</button>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label for="desc">Deskripsi</label>
+                        <textarea id="desc" placeholder="Jelaskan kondisi masalah secara singkat"></textarea>
+                    </div>
+                    <div class="field">
+                        <label class="upload" for="photo">Unggah foto (opsional)<input id="photo" type="file"
+                                accept="image/*"></label>
+                        <img id="preview" alt="Pratinjau foto">
+                    </div>
+                    <button class="btn block" type="submit">Kirim Laporan</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- ===== DAFTAR LAPORAN ===== -->
+        <section class="card reports" id="listSection">
+            <h2 style="margin:0;font-size:17px">Laporan Terbaru</h2>
+            <div class="filters">
+                <input id="search" type="search" placeholder="Cari judul atau deskripsi...">
+                <select id="fCategory">
+                    <option value="">Semua kategori</option>
+                </select>
+                <select id="fStatus">
+                    <option value="">Semua status</option>
+                    <option value="wait">Menunggu</option>
+                    <option value="proces">Diproses</option>
+                    <option value="done">Selesai</option>
+                </select>
+            </div>
+            <div class="list" id="list"></div>
+        </section>
+    </main>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        (() => {
+            'use strict';
+
+            /* ===== 1. KONFIGURASI & STATE ===== */
+            const KEY = 'civicRadarV2', VOTE_KEY = 'civicRadarV2Votes';
+            const CENTER = [-7.9666, 112.6326]; // Malang
+            const STATUS = { wait: 'Menunggu', proces: 'Diproses', done: 'Selesai' };
+            const DAY = 86400000;
+
+            const sample = (id, category, title, desc, lat, lng, status, ago, votes) => ({
+                id, category, title, desc, lat, lng, status, photo: '', votes, own: false,
+                time: Date.now() - DAY * ago,
+                history: [{ status: 'wait', time: Date.now() - DAY * ago }].concat(
+                    status === 'wait' ? [] : [{ status, time: Date.now() - DAY * Math.max(ago - 1, 0) }])
+            });
+
+            const state = {
+                reports: [], voted: [], picked: null, photo: '',
+                markers: {}, pickMarker: null, meCircle: null, timer: null
+            };
+
+            /* ===== 2. UTILITAS ===== */
+            const $ = (id) => document.getElementById(id);
+            const esc = (s) => String(s).replace(/[&<>"']/g, (c) =>
+                ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+            const fmt = (t) => new Date(t).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+            const toast = (msg) => {
+                const el = $('toast');
+                el.textContent = msg; el.style.display = 'block';
+                clearTimeout(state.timer);
+                state.timer = setTimeout(() => { el.style.display = 'none'; }, 3000);
+            };
+
+            /* ===== 3. PENYIMPANAN ===== */
+            const read = (key) => { try { return JSON.parse(localStorage.getItem(key)); } catch { return null; } };
+            const save = () => {
+                try {
+                    localStorage.setItem(KEY, JSON.stringify(state.reports));
+                    localStorage.setItem(VOTE_KEY, JSON.stringify(state.voted));
+                } catch { toast('Penyimpanan penuh, coba foto yang lebih kecil.'); }
+            };
+            const load = () => {
+                state.reports = read(KEY) || [];
+                state.voted = read(VOTE_KEY) || [];
+                if (!state.reports.length) state.reports = [
+                    sample(1, 'Jalan Rusak', 'Lubang besar di jalan utama', 'Lubang sedalam 20 cm membahayakan pengendara motor.', -7.9466, 112.6149, 'proces', 3, 12),
+                    sample(2, 'Sampah Menumpuk', 'Sampah menumpuk di pinggir sungai', 'Sudah lebih dari seminggu belum diangkut.', -7.9797, 112.6304, 'wait', 1, 5),
+                    sample(3, 'Lampu Jalan Mati', 'Lampu PJU mati satu blok', 'Jalan gelap dan rawan kecelakaan di malam hari.', -7.9525, 112.6086, 'done', 5, 9)
+                ];
+            };
+
+            /* ===== 4. PETA ===== */
+            const map = L.map('map').setView(CENTER, 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19, attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+
+            const pin = (cls) => L.divIcon({
+                className: '', html: `<div class="pin ${cls}"></div>`,
+                iconSize: [26, 26], iconAnchor: [13, 26], popupAnchor: [0, -26]
+            });
+
+            const setPicked = (lat, lng) => {
+                state.picked = { lat, lng };
+                $('location').value = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+                if (state.pickMarker) map.removeLayer(state.pickMarker);
+                state.pickMarker = L.marker([lat, lng], { icon: pin('me') }).addTo(map).bindPopup('Lokasi laporan Anda');
+            };
+
+            const drawMarkers = (list) => {
+                Object.values(state.markers).forEach((m) => map.removeLayer(m));
+                state.markers = {};
+                list.forEach((r) => {
+                    state.markers[r.id] = L.marker([r.lat, r.lng], { icon: pin(r.status) }).addTo(map)
+                        .bindPopup(`<b>${esc(r.title)}</b><br>${esc(r.category)}<br><i>${STATUS[r.status]}</i>`);
+                });
+            };
+
+            /* ===== 5. GEOLOKASI ===== */
+            const locate = (fillForm) => {
+                if (!navigator.geolocation) return toast('Browser tidak mendukung geolokasi.');
+                toast('Mencari lokasi Anda...');
+                navigator.geolocation.getCurrentPosition(
+                    ({ coords }) => {
+                        const { latitude: lat, longitude: lng, accuracy } = coords;
+                        map.setView([lat, lng], 16);
+                        if (state.meCircle) map.removeLayer(state.meCircle);
+                        state.meCircle = L.circle([lat, lng], { radius: accuracy, color: '#1d4ed8', fillOpacity: .12 }).addTo(map);
+                        if (fillForm) setPicked(lat, lng);
+                        toast('Lokasi ditemukan.');
+                    },
+                    (err) => toast(err.code === 1
+                        ? 'Izin lokasi ditolak. Aktifkan di pengaturan browser.'
+                        : 'Lokasi tidak dapat ditentukan.'),
+                    { enableHighAccuracy: true, timeout: 10000 }
+                );
+            };
+
+            /* ===== 6. FOTO (dikecilkan agar hemat penyimpanan) ===== */
+            const handlePhoto = (file) => {
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const k = Math.min(1, 800 / img.width), c = document.createElement('canvas');
+                        c.width = img.width * k; c.height = img.height * k;
+                        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+                        state.photo = c.toDataURL('image/jpeg', .7);
+                        $('preview').src = state.photo; $('preview').style.display = 'block';
+                    };
+                    img.src = reader.result;
+                };
+                reader.readAsDataURL(file);
+            };
+
+            /* ===== 7. RENDER ===== */
+            const count = (s) => state.reports.filter((r) => r.status === s).length;
+
+            const filtered = () => {
+                const q = $('search').value.trim().toLowerCase();
+                const cat = $('fCategory').value, st = $('fStatus').value;
+                return state.reports
+                    .filter((r) => (!cat || r.category === cat) && (!st || r.status === st) &&
+                        (!q || (r.title + ' ' + r.desc).toLowerCase().includes(q)))
+                    .sort((a, b) => b.time - a.time);
+            };
+
+            const card = (r) => `
+    <article class="item" data-id="${r.id}">
+    ${r.photo ? `<img src="${r.photo}" alt="Foto laporan">` : ''}
+    <div class="top">
+        <div><h3>${esc(r.title)}</h3><span class="meta">${esc(r.category)}</span></div>
+        <span class="badge ${r.status}">${STATUS[r.status]}</span>
+    </div>
+    <p>${esc(r.desc)}</p>
+    <div class="meta when">${fmt(r.time)} &bull; ${r.lat.toFixed(4)}, ${r.lng.toFixed(4)}</div>
+    <div class="history">${r.history.map((h) => `${STATUS[h.status]} - ${fmt(h.time)}`).join('<br>')}</div>
+    <div class="actions">
+        <button data-act="vote" class="${state.voted.includes(r.id) ? 'voted' : ''}">&#9650; Dukung (${r.votes})</button>
+        ${r.own ? '<button data-act="del" class="del">Hapus</button>' : ''}
+    </div>
+    <div class="actions admin-only">
+        ${Object.entries(STATUS).map(([k, v]) =>
+                `<button data-act="status" data-status="${k}" class="${r.status === k ? 'on' : ''}">${v}</button>`).join('')}
+    </div>
+    </article>`;
+
+            const render = () => {
+                $('sTotal').textContent = state.reports.length;
+                $('sWait').textContent = count('wait');
+                $('sProces').textContent = count('proces');
+                $('sDone').textContent = count('done');
+
+                const list = filtered();
+                $('list').innerHTML = list.length ? list.map(card).join('') : '<div class="empty">Tidak ada laporan yang cocok.</div>';
+                drawMarkers(list);
+            };
+
+            const fillCategories = () => {
+                $('fCategory').innerHTML += [...$('category').options].slice(1)
+                    .map((o) => `<option>${esc(o.value || o.text)}</option>`).join('');
+            };
+
+            /* ===== 8. EVENT ===== */
+            const resetForm = () => {
+                $('form').reset(); $('preview').style.display = 'none';
+                state.picked = null; state.photo = '';
+                if (state.pickMarker) { map.removeLayer(state.pickMarker); state.pickMarker = null; }
+            };
+
+            const onSubmit = (e) => {
+                e.preventDefault();
+                const category = $('category').value, title = $('title').value.trim(), desc = $('desc').value.trim();
+                if (!category || !title || !desc) return toast('Lengkapi kategori, judul, dan deskripsi.');
+                if (!state.picked) return toast('Pilih lokasi dengan klik peta atau tombol GPS.');
+                const now = Date.now();
+                state.reports.unshift({
+                    id: now, category, title, desc, lat: state.picked.lat, lng: state.picked.lng,
+                    status: 'wait', photo: state.photo, votes: 0, own: true, time: now,
+                    history: [{ status: 'wait', time: now }]
+                });
+                save(); resetForm(); render();
+                toast('Laporan terkirim dan berstatus Menunggu.');
+                $('listSection').scrollIntoView({ behavior: 'smooth' });
+            };
+
+            const onListClick = (e) => {
+                const item = e.target.closest('.item');
+                if (!item) return;
+                const r = state.reports.find((x) => x.id === Number(item.dataset.id));
+                const btn = e.target.closest('button[data-act]');
+
+                if (!btn) { // klik kartu: fokus ke peta
+                    map.setView([r.lat, r.lng], 17);
+                    state.markers[r.id] && state.markers[r.id].openPopup();
+                    return $('mapSection').scrollIntoView({ behavior: 'smooth' });
+                }
+                if (btn.dataset.act === 'vote') {
+                    const i = state.voted.indexOf(r.id);
+                    if (i < 0) { state.voted.push(r.id); r.votes++; } else { state.voted.splice(i, 1); r.votes--; }
+                }
+                if (btn.dataset.act === 'del' && confirm('Hapus laporan ini?')) {
+                    state.reports = state.reports.filter((x) => x.id !== r.id);
+                }
+                if (btn.dataset.act === 'status' && btn.dataset.status !== r.status) {
+                    r.status = btn.dataset.status;
+                    r.history.push({ status: r.status, time: Date.now() });
+                    toast(`Status diubah menjadi ${STATUS[r.status]}.`);
+                }
+                save(); render();
+            };
+
+            const bind = () => {
+                map.on('click', (e) => setPicked(e.latlng.lat, e.latlng.lng));
+                $('btnLocate').onclick = () => locate(false);
+                $('btnGps').onclick = () => locate(true);
+                $('btnFit').onclick = () => state.reports.length &&
+                    map.fitBounds(L.latLngBounds(state.reports.map((r) => [r.lat, r.lng])), { padding: [40, 40] });
+                $('photo').onchange = (e) => handlePhoto(e.target.files[0]);
+                $('form').onsubmit = onSubmit;
+                $('list').onclick = onListClick;
+                ['search', 'fCategory', 'fStatus'].forEach((id) => $(id).addEventListener('input', render));
+                $('adminToggle').onchange = (e) => {
+                    document.body.classList.toggle('admin', e.target.checked);
+                    toast(e.target.checked ? 'Mode petugas aktif.' : 'Mode petugas nonaktif.');
+                };
+                $('nav').onclick = (e) => {
+                    const a = e.target.closest('a'); if (!a) return;
+                    document.querySelectorAll('.nav a').forEach((x) => x.classList.remove('active'));
+                    a.classList.add('active');
+                    $(a.dataset.go).scrollIntoView({ behavior: 'smooth' });
+                };
+            };
+
+            /* ===== 9. INISIALISASI ===== */
+            load(); fillCategories(); bind(); render();
+            window.addEventListener('load', () => map.invalidateSize());
+            window.addEventListener('resize', () => map.invalidateSize());
+        })();
+    </script>
+</body>
+
+</html>
