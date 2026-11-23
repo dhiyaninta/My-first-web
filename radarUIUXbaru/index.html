@@ -153,8 +153,8 @@
   <!--Section 1. Radar Peta dan Transparasi Laporan Publik-->
   <main id="radar-section" class="max-w-6xl mx-auto px-6 py-16">
     <!-- BAnner Lokasi Pengguna kyk di gmaps-->
-    <div class="bg-white rounded-3xl p-5 md:p-6 border border-forest/15 shadow-sm mb-6 flex flex-col lg:items-center justify-between gap-4">
-        <div class="flex items-start gao-3.5">
+    <div class="bg-white rounded-3xl p-5 md:p-6 border border-forest/15 shadow-sm mb-10 flex flex-col lg:items-center justify-between gap-6">
+        <div class="flex items-start gap-4">
             <div class="w-11 h-11 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center shirink-0 mt-0.5">
                 <span class="relative flexh-3.5 w-3.5">
                     <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
@@ -168,10 +168,10 @@
                   </span>
                   <span id="userAccuracyText" class="text-[11px] text-stoneMuted font-mediu">Akurasi GPS: - </span>
                 </div>
-                <h3 id="userPlaceName" class="text-base md:text-lg font-bold text-forest mt-1">
+                <h3 id="userPlaceName" class="text-base md:text-lg font-bold text-forest mt-2">
                     Mendeteksi nama jalan dan area sekitar...
                 </h3>
-                <p id="userExactCoords" class="text-xs font-mono text-stoneMuted mt-0.5">
+                <p id="userExactCoords" class="text-xs font-mono text-stoneMuted mt-2">
                     Lat:   , Lng: 
                 </p>
             </div>
@@ -343,6 +343,19 @@
               class="w-full px-5 py-3.5 rounded-full bg-white/10 border border-white/25 text-sm text-cream placeholder:text-cream/40 focus:outline-none focus:border-cream transition" />
           </div>
 
+          <!-- UNGGAH FOTO BUKTI (TAMBAHAN BARU) -->
+          <div>
+            <span class="block text-[11px] uppercase tracking-wider text-cream/70 mb-1.5 ml-3">Foto Bukti (Opsional, maks. 3 foto)</span>
+            <label for="reportPhotos"
+              class="flex items-center justify-between gap-3 w-full px-5 py-3 rounded-full bg-white/10 border border-dashed border-white/35 text-sm text-cream/70 hover:bg-white/15 cursor-pointer transition">
+              <span id="photoHint">Pilih atau ambil foto kondisi lapangan...</span>
+              <span class="text-xs font-semibold bg-cream text-forest px-3.5 py-1.5 rounded-full shrink-0">Pilih Foto</span>
+            </label>
+            <input type="file" id="reportPhotos" accept="image/*" multiple class="hidden" onchange="handlePhotos(this)" />
+            <p id="photoError" class="hidden text-[11px] text-red-300 mt-2 ml-3"></p>
+            <div id="photoPreview" class="flex flex-wrap gap-3 mt-3 ml-3"></div>
+          </div>
+
           <button type="submit" id="submitBtn"
             class="w-full mt-2 flex items-center justify-between bg-cream text-forest pl-6 pr-2 py-2.5 rounded-full text-xs font-bold tracking-wide hover:bg-white transition shadow-lg">
             <span>Publikasikan ke Radar Transparansi</span>
@@ -363,6 +376,13 @@
   <!--Bag JS Nyoooo-->
 
   </main>
+
+  <!-- LIGHTBOX FOTO BUKTI (TAMBAHAN BARU) -->
+  <div id="lightbox" class="hidden fixed inset-0 z-[9999] bg-black/85 flex items-center justify-center p-4" onclick="closeLightbox()">
+    <button type="button" class="absolute top-4 right-5 text-white text-4xl leading-none" aria-label="Tutup" onclick="closeLightbox()">&times;</button>
+    <img id="lightboxImg" alt="Foto bukti laporan" class="max-h-[88vh] max-w-full rounded-2xl shadow-2xl" onclick="event.stopPropagation()" />
+  </div>
+
   <script>
   // 1. Koordinat default (Malang) sebelum GPS terdeteksi
   let userLat = -7.966620;
@@ -454,23 +474,109 @@
     isSatellite = !isSatellite;
   }
 
-  // 6. Tambah Pin Laporan ke Peta saat Form Dikirim
+  // 6. Foto bukti + tambah pin laporan ke peta
+  const MAX_PHOTOS = 3;
+  const MAX_FILE_MB = 10;
+  let pendingPhotos = [];
+
+  function showPhotoError(msg) {
+    const el = document.getElementById('photoError');
+    el.textContent = msg;
+    el.classList.toggle('hidden', !msg);
+  }
+
+  function resizeImage(file, maxWidth = 1000, quality = 0.75) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = reject;
+      reader.onload = () => {
+        const img = new Image();
+        img.onerror = reject;
+        img.onload = () => {
+          const scale = Math.min(1, maxWidth / img.width);
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.round(img.width * scale);
+          canvas.height = Math.round(img.height * scale);
+          canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function handlePhotos(input) {
+    const files = Array.from(input.files);
+    input.value = '';
+    showPhotoError('');
+    for (const file of files) {
+      if (pendingPhotos.length >= MAX_PHOTOS) { showPhotoError(`Maksimal ${MAX_PHOTOS} foto per laporan.`); break; }
+      if (!file.type.startsWith('image/')) { showPhotoError('Hanya file gambar (JPG, PNG, WebP) yang diterima.'); continue; }
+      if (file.size > MAX_FILE_MB * 1024 * 1024) { showPhotoError(`Ukuran foto maksimal ${MAX_FILE_MB} MB.`); continue; }
+      try { pendingPhotos.push(await resizeImage(file)); }
+      catch (e) { showPhotoError('Foto tidak dapat dibaca, coba file lain.'); }
+    }
+    renderPhotoPreview();
+  }
+
+  function removePhoto(index) {
+    pendingPhotos.splice(index, 1);
+    showPhotoError('');
+    renderPhotoPreview();
+  }
+
+  function renderPhotoPreview() {
+    document.getElementById('photoPreview').innerHTML = pendingPhotos.map((src, i) => `
+      <div class="relative w-16 h-16 rounded-2xl overflow-hidden border border-white/25">
+        <img src="${src}" alt="Pratinjau foto ${i + 1}" class="w-full h-full object-cover">
+        <button type="button" onclick="removePhoto(${i})" aria-label="Hapus foto ${i + 1}"
+          class="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/70 text-white text-xs leading-5 text-center">&times;</button>
+      </div>`).join('');
+    document.getElementById('photoHint').textContent = pendingPhotos.length
+      ? `${pendingPhotos.length} foto dipilih (maks. ${MAX_PHOTOS})`
+      : 'Pilih atau ambil foto kondisi lapangan...';
+  }
+
+  function openLightbox(reportIdx, photoIdx) {
+    const r = reports[reportIdx];
+    if (!r || !r.photos[photoIdx]) return;
+    document.getElementById('lightboxImg').src = r.photos[photoIdx];
+    document.getElementById('lightbox').classList.remove('hidden');
+  }
+
+  function closeLightbox() {
+    document.getElementById('lightbox').classList.add('hidden');
+  }
+
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeLightbox(); });
+
   function submitNewReport(event) {
     event.preventDefault();
     const title = document.getElementById('reportTitle').value;
     const category = document.getElementById('reportCategory').value;
     const desc = document.getElementById('reportDesc').value;
+    const photos = pendingPhotos.slice();
+    const reportIdx = reports.length;
+
+    const fotoHTML = photos.length
+      ? `<div style="display:flex;gap:6px;margin:8px 0 2px;">${photos.map((src, i) =>
+          `<img src="${src}" alt="Foto bukti ${i + 1}" onclick="openLightbox(${reportIdx}, ${i})" style="width:64px;height:64px;object-fit:cover;border-radius:8px;cursor:zoom-in;">`).join('')}</div>`
+      : '';
 
     L.marker([userLat, userLng])
       .addTo(map)
-      .bindPopup(`<b>${title}</b><br><small>${category}</small><br>${desc}`)
+      .bindPopup(`<b>${title}</b><br><small>${category}</small>${fotoHTML}<br>${desc}`)
       .openPopup();
 
-    reports.push({ title, category, desc, status: 'Menunggu' });
+    reports.push({ title, category, desc, photos, status: 'Menunggu' });
     document.getElementById('radiusInfo').textContent = `Total laporan aktif di radar: ${reports.length} Laporan`;
     document.getElementById('countDiproses').textContent = reports.length;
     document.getElementById('emptyStateBox').classList.add('hidden');
     event.target.reset();
+    pendingPhotos = [];
+    showPhotoError('');
+    renderPhotoPreview();
   }
 
   // Jalankan deteksi lokasi otomatis saat halaman dibuka
