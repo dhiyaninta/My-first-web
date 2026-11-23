@@ -372,6 +372,19 @@
               class="w-full px-5 py-3.5 rounded-full bg-white/10 border border-white/25 text-sm text-cream placeholder:text-cream/40 focus:outline-none focus:border-cream transition" />
           </div>
 
+          <!-- UNGGAH FOTO BUKTI -->
+          <div>
+            <span class="block text-[11px] uppercase tracking-wider text-cream/70 mb-1.5 ml-3">Foto Bukti (Opsional, maks. 3 foto)</span>
+            <label for="reportPhotos"
+              class="flex items-center justify-between gap-3 w-full px-5 py-3 rounded-full bg-white/10 border border-dashed border-white/35 text-sm text-cream/70 hover:bg-white/15 cursor-pointer transition">
+              <span id="photoHint">Pilih atau ambil foto kondisi lapangan...</span>
+              <span class="text-xs font-semibold bg-cream text-forest px-3.5 py-1.5 rounded-full shrink-0">Pilih Foto</span>
+            </label>
+            <input type="file" id="reportPhotos" accept="image/*" multiple class="hidden" onchange="handlePhotos(this)" />
+            <p id="photoError" class="hidden text-[11px] text-red-300 mt-2 ml-3"></p>
+            <div id="photoPreview" class="flex flex-wrap gap-3 mt-3 ml-3"></div>
+          </div>
+
           <button type="submit" id="submitBtn"
             class="w-full mt-2 flex items-center justify-between bg-cream text-forest pl-6 pr-2 py-2.5 rounded-full text-xs font-bold tracking-wide hover:bg-white transition shadow-lg">
             <span>Publikasikan ke Radar Transparansi</span>
@@ -391,6 +404,12 @@
     <div>Techcomfest 2027 &bull; Smart Governance &amp; Public Service (SDGs 16)</div>
   </footer>
 
+  <!-- LIGHTBOX: perbesar foto bukti -->
+  <div id="lightbox" class="hidden fixed inset-0 z-[9999] bg-black/85 flex items-center justify-center p-4" onclick="closeLightbox()">
+    <button type="button" class="absolute top-4 right-5 text-white text-4xl leading-none" aria-label="Tutup" onclick="closeLightbox()">&times;</button>
+    <img id="lightboxImg" alt="Foto bukti laporan" class="max-h-[88vh] max-w-full rounded-2xl shadow-2xl" onclick="event.stopPropagation()" />
+  </div>
+
   <script>
     // ========== STATE ==========
     let userLat = -7.966620;   // default Malang sebelum GPS terdeteksi
@@ -399,6 +418,10 @@
     let activeFilter = null;   // null = tampilkan semua
     let reports = [];
     let nextId = 1;
+
+    const MAX_PHOTOS = 3;       // jumlah foto maksimal per laporan
+    const MAX_FILE_MB = 10;     // ukuran file asli maksimal
+    let pendingPhotos = [];     // foto di form yang belum dikirim (data URL)
 
     // ========== PETA ==========
     const map = L.map('radarMap').setView([userLat, userLng], 15);
@@ -503,11 +526,106 @@
       isSatellite = !isSatellite;
     }
 
+    // ========== FOTO BUKTI ==========
+    function showPhotoError(msg) {
+      const el = document.getElementById('photoError');
+      el.textContent = msg;
+      el.classList.toggle('hidden', !msg);
+    }
+
+    // Kecilkan foto (maks. lebar 1000px, JPEG 75%) agar ringan di memori
+    function resizeImage(file, maxWidth = 1000, quality = 0.75) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = reject;
+        reader.onload = () => {
+          const img = new Image();
+          img.onerror = reject;
+          img.onload = () => {
+            const scale = Math.min(1, maxWidth / img.width);
+            const canvas = document.createElement('canvas');
+            canvas.width = Math.round(img.width * scale);
+            canvas.height = Math.round(img.height * scale);
+            canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+            resolve(canvas.toDataURL('image/jpeg', quality));
+          };
+          img.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function handlePhotos(input) {
+      const files = Array.from(input.files);
+      input.value = ''; // supaya foto yang sama bisa dipilih ulang
+      showPhotoError('');
+
+      for (const file of files) {
+        if (pendingPhotos.length >= MAX_PHOTOS) {
+          showPhotoError(`Maksimal ${MAX_PHOTOS} foto per laporan.`);
+          break;
+        }
+        if (!file.type.startsWith('image/')) {
+          showPhotoError('Hanya file gambar (JPG, PNG, WebP) yang diterima.');
+          continue;
+        }
+        if (file.size > MAX_FILE_MB * 1024 * 1024) {
+          showPhotoError(`Ukuran foto maksimal ${MAX_FILE_MB} MB.`);
+          continue;
+        }
+        try {
+          pendingPhotos.push(await resizeImage(file));
+        } catch (e) {
+          showPhotoError('Foto tidak dapat dibaca, coba file lain.');
+        }
+      }
+      renderPhotoPreview();
+    }
+
+    function removePhoto(index) {
+      pendingPhotos.splice(index, 1);
+      showPhotoError('');
+      renderPhotoPreview();
+    }
+
+    function renderPhotoPreview() {
+      document.getElementById('photoPreview').innerHTML = pendingPhotos.map((src, i) => `
+        <div class="relative w-16 h-16 rounded-2xl overflow-hidden border border-white/25">
+          <img src="${src}" alt="Pratinjau foto ${i + 1}" class="w-full h-full object-cover">
+          <button type="button" onclick="removePhoto(${i})" aria-label="Hapus foto ${i + 1}"
+            class="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/70 text-white text-xs leading-5 text-center">&times;</button>
+        </div>`).join('');
+
+      setText('photoHint', pendingPhotos.length
+        ? `${pendingPhotos.length} foto dipilih (maks. ${MAX_PHOTOS})`
+        : 'Pilih atau ambil foto kondisi lapangan...');
+    }
+
+    // ========== LIGHTBOX ==========
+    function openLightbox(id, index) {
+      const r = reports.find((x) => x.id === id);
+      if (!r || !r.photos[index]) return;
+      document.getElementById('lightboxImg').src = r.photos[index];
+      document.getElementById('lightbox').classList.remove('hidden');
+    }
+
+    function closeLightbox() {
+      document.getElementById('lightbox').classList.add('hidden');
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeLightbox();
+    });
+
     // ========== LAPORAN ==========
     function popupHTML(r) {
+      const foto = r.photos.length
+        ? `<img src="${r.photos[0]}" alt="Foto bukti" style="display:block;width:100%;max-width:200px;border-radius:8px;margin:6px 0 2px;">`
+        : '';
       return `<b>${escapeHTML(r.title)}</b><br>
-              <small>${escapeHTML(r.category)} &bull; ${r.status}</small><br>
-              ${escapeHTML(r.desc)}`;
+              <small>${escapeHTML(r.category)} &bull; ${r.status}</small>
+              ${foto}
+              <br>${escapeHTML(r.desc)}`;
     }
 
     function makeReportIcon(status) {
@@ -528,6 +646,7 @@
         category: document.getElementById('reportCategory').value,
         reporter: document.getElementById('reporterName').value.trim() || 'Warga Anonim',
         desc: document.getElementById('reportDesc').value.trim(),
+        photos: pendingPhotos.slice(),
         status: 'Menunggu',
         lat: userLat,
         lng: userLng,
@@ -539,6 +658,9 @@
 
       reports.push(report);
       event.target.reset();
+      pendingPhotos = [];
+      showPhotoError('');
+      renderPhotoPreview();
       renderReports();
 
       report.marker.addTo(map).openPopup();
@@ -557,6 +679,24 @@
     function filterReports(status) {
       activeFilter = activeFilter === status ? null : status; // klik lagi = tampilkan semua
       renderReports();
+    }
+
+    function photosHTML(r) {
+      if (!r.photos.length) return '';
+      const cover = `
+        <div class="-mx-5 -mt-5 relative">
+          <img src="${r.photos[0]}" alt="Foto bukti: ${escapeHTML(r.title)}" onclick="openLightbox(${r.id}, 0)"
+            class="w-full h-40 object-cover cursor-zoom-in">
+          <span class="absolute bottom-2 left-3 text-[10px] font-bold bg-black/60 text-white px-2 py-0.5 rounded-full">
+            ${r.photos.length} foto bukti
+          </span>
+        </div>`;
+      const thumbs = r.photos.length > 1
+        ? `<div class="flex gap-2">${r.photos.slice(1).map((src, j) => `
+            <img src="${src}" alt="Foto bukti tambahan ${j + 2}" onclick="openLightbox(${r.id}, ${j + 1})"
+              class="w-14 h-14 rounded-xl object-cover cursor-zoom-in border border-forest/15">`).join('')}</div>`
+        : '';
+      return cover + thumbs;
     }
 
     function renderReports() {
@@ -615,7 +755,8 @@
             : 'bg-amber-100 text-amber-800 border-amber-200';
           const waktu = r.time.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
           return `
-            <article class="bg-white rounded-3xl border border-forest/15 p-5 shadow-sm flex flex-col gap-3">
+            <article class="bg-white rounded-3xl border border-forest/15 p-5 shadow-sm flex flex-col gap-3 overflow-hidden">
+              ${photosHTML(r)}
               <div class="flex items-center justify-between gap-2">
                 <span class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border ${badge}">${r.status}</span>
                 <span class="text-[11px] text-stoneMuted font-medium">${jarakDariUser(r.lat, r.lng)} dari Anda</span>
