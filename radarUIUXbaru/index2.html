@@ -93,7 +93,6 @@
       70%  { transform: scale(1.35); opacity: 0.25; }
       100% { transform: scale(0.75); opacity: 0.9; }
     }
-
     /* Animasi teks: setiap kata bergerak dari kiri / kanan menuju posisinya */
     body { overflow-x: hidden; }
 
@@ -820,59 +819,76 @@
     detectUserLocation();
   </script>
 
-  <script>
-    // ===== Animasi semua kata: bergantian dari kiri & kanan menuju tengah =====
-    (function () {
-      const SKIP_TAGS = new Set(['SCRIPT','STYLE','NOSCRIPT','SELECT','OPTION','TEXTAREA','SVG','INPUT']);
-      const SKIP_SELECTOR = '#radarMap, #lightbox, #reportGrid, .word';
-      const counters = new Map(); // urutan kata per elemen induk
+ <script>
+  // ===== Animasi semua kata: bergantian dari kiri & kanan menuju tengah =====
+  (function () {
+    const SKIP_TAGS = new Set(['SCRIPT','STYLE','NOSCRIPT','SELECT','OPTION','TEXTAREA','SVG','INPUT']);
+    const SKIP_SELECTOR = '#radarMap, #lightbox, #reportGrid, .word';
+    const counters = new Map();
 
-      function wrapTextNode(node) {
-        let host = node.parentElement;
-        if (/(flex|grid)/.test(getComputedStyle(host).display)) {
-          // cegah tiap kata menjadi item flex terpisah
-          const box = document.createElement('span');
-          node.parentNode.insertBefore(box, node);
-          box.appendChild(node);
-          host = box;
-        }
-        const frag = document.createDocumentFragment();
-        node.textContent.split(/(\s+)/).forEach((part) => {
-          if (!part) return;
-          if (/^\s+$/.test(part)) { frag.appendChild(document.createTextNode(part)); return; }
-          const i = counters.get(host) || 0;
-          counters.set(host, i + 1);
-          const w = document.createElement('span');
-          w.className = 'word ' + (i % 2 === 0 ? 'from-left' : 'from-right');
-          w.style.setProperty('--i', Math.min(i, 25));
-          w.textContent = part;
-          frag.appendChild(w);
-        });
-        node.parentNode.replaceChild(frag, node);
+    function wrapTextNode(node) {
+      let host = node.parentElement;
+      if (/(flex|grid)/.test(getComputedStyle(host).display)) {
+        const box = document.createElement('span');
+        node.parentNode.insertBefore(box, node);
+        box.appendChild(node);
+        host = box;
       }
+      const frag = document.createDocumentFragment();
+      node.textContent.split(/(\s+)/).forEach((part) => {
+        if (!part) return;
+        if (/^\s+$/.test(part)) {
+          frag.appendChild(document.createTextNode(part));
+          return;
+        }
+        const i = counters.get(host) || 0;
+        counters.set(host, i + 1);
+        const w = document.createElement('span');
+        w.className = 'word ' + (i % 2 === 0 ? 'from-left' : 'from-right');
+        w.style.setProperty('--i', Math.min(i, 25));
+        w.textContent = part;
+        frag.appendChild(w);
+      });
+      node.parentNode.replaceChild(frag, node);
+    }
 
-      const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
-        acceptNode(n) {
-          if (!n.textContent.trim()) return NodeFilter.FILTER_REJECT;
-          const el = n.parentElement;
-          if (!el || SKIP_TAGS.has(el.tagName.toUpperCase()) || el.closest(SKIP_SELECTOR)) return NodeFilter.FILTER_REJECT;
-          return NodeFilter.FILTER_ACCEPT;
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+      acceptNode(n) {
+        if (!n.textContent.trim()) return NodeFilter.FILTER_REJECT;
+        const el = n.parentElement;
+        if (!el || SKIP_TAGS.has(el.tagName.toUpperCase()) || el.closest(SKIP_SELECTOR)) {
+          return NodeFilter.FILTER_REJECT;
+        }
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    });
+
+    const nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach(wrapTextNode);
+
+    const words = [...document.querySelectorAll('.word')];
+    const hosts = new Set(words.map((w) => w.parentElement));
+
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting) {
+          e.target.classList.add('in-view');
+          io.unobserve(e.target);
         }
       });
-      const nodes = [];
-      while (walker.nextNode()) nodes.push(walker.currentNode);
-      nodes.forEach(wrapTextNode);
+    }, { threshold: 0.01 });
 
-      // mulai animasi saat elemen terlihat di layar (saat load untuk bagian atas)
-      const hosts = new Set([...document.querySelectorAll('.word')].map((w) => w.parentElement));
-      const io = new IntersectionObserver((entries) => {
-        entries.forEach((e) => {
-          if (e.isIntersecting) { e.target.classList.add('in-view'); io.unobserve(e.target); }
-        });
-      }, { threshold: 0.1 });
-      hosts.forEach((h) => io.observe(h));
-    })();
-  </script>
+    hosts.forEach((h) => {
+      const rect = h.getBoundingClientRect();
+      if (rect.top < window.innerHeight && rect.bottom > 0) {
+        h.classList.add('in-view');
+      } else {
+        io.observe(h);
+      }
+    });
+  })();
+</script>
 </body>
 </html>
 </script>
