@@ -30,7 +30,8 @@
           },
           fontFamily: {
             serif: ['Cormorant Garamond', 'serif'],
-            sans: ['Plus Jakarta Sans', 'sans-serif']
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+            helvetica: ['"Helvetica Neue"', 'Helvetica', 'Arial', 'sans-serif']
           }
         }
       }
@@ -130,6 +131,9 @@
       box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
     }
     .report-pin.selesai span { background: #059669; }
+    .font-helvetica {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
   </style>
   <noscript><style>.word{opacity:1!important;animation:none!important}</style></noscript>
 </head>
@@ -169,8 +173,8 @@
         <p class="text-sm text-cream/60 font-semibold mb-4">
           By Ctrl+A+delete
         </p>
-        <h1 class="editorial-tittle text-5xl sm:text-6xl md:text-7xl font-semibold leading-[1.15] tracking-tight">
-          PANTAU <span class="italic font-normal text-cream/90">ruang</span><br />
+        <h1 class="editorial-title text-5xl sm:text-6xl md:text-7xl font-normal leading-[1.15] tracking-tight">
+          PANTAU <span class="italic font-bold text-cream" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">ruang</span><br />
           PUBLIK SEKITAR KAMU
         </h1>
         <p class="mt-5 text-sm md:text-base text-cream/70 max-w-xl leading-relaxed">
@@ -419,12 +423,14 @@
   </section>
 
   <!-- Footer -->
-  <footer class="max-w-6xl mx-auto px-6 py-10 border-t border-forest/15 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-stoneMuted">
-    <div>
+  <footer class="max-w-6xl mx-auto px-6 py-10 border-t border-forest/15 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-stoneMuted">
+    <div class="flex flex-wrap items-center justify-center md:justify-start gap-2">
       <span class="editorial-title text-xl font-bold text-forest">CivicRadar.</span>
-      <span class="ml-2">Transparansi Layanan Publik Berbasis Geolokasi</span>
+      <span>Transparansi Layanan Publik Berbasis Geolokasi</span>
     </div>
-    <div>Techcomfest 2027 &bull; Smart Governance &amp; Public Service (SDGs 16)</div>
+    <div class="text-center md:text-right">
+      Techcomfest 2027 &bull; Smart Governance &amp; Public Service (SDGs 16)
+    </div>
   </footer>
 
   <!-- LIGHTBOX: perbesar foto bukti -->
@@ -869,7 +875,4 @@
   </script>
 </body>
 </html>
-   // <-- muat laporan tersimpan
-    renderReports();  // <-- tampilkan ke peta & grid
-    detectUserLocation();
 </script>
