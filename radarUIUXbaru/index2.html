@@ -87,34 +87,29 @@
       box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
       z-index: 2;
     }
-
-    @keyframes gmapsPulse {
-      0%   { transform: scale(0.75); opacity: 0.9; }
-      70%  { transform: scale(1.35); opacity: 0.25; }
-      100% { transform: scale(0.75); opacity: 0.9; }
-    }
-    /* Animasi teks: setiap kata bergerak dari kiri / kanan menuju posisinya */
+    /* Animasi teks: muncul lembut ke atas tanpa bikin pusing */
     body { overflow-x: hidden; }
 
-    .word {
-      display: inline-block;
+    .reveal-text {
       opacity: 0;
-      animation: wordIn 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards paused;
-      animation-delay: calc(var(--i, 0) * var(--step, 0.06s) + 0.15s);
+      transform: translateY(16px);
+      transition: opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+                  transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+      transition-delay: var(--delay, 0s);
     }
-    .in-view > .word { animation-play-state: running; }
-    .from-left  { --x: -70vw; }
-    .from-right { --x: 70vw; }
 
-    @keyframes wordIn {
-      from { transform: translateX(var(--x)); opacity: 0; filter: blur(5px); }
-      to   { transform: translateX(0);        opacity: 1; filter: blur(0); }
+    .reveal-text.is-visible {
+      opacity: 1;
+      transform: translateY(0);
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .word { animation: none; opacity: 1; }
+      .reveal-text {
+        opacity: 1;
+        transform: none;
+        transition: none;
+      }
     }
-
     /* Pin laporan warga */
     .report-pin {
       background: transparent;
@@ -818,77 +813,51 @@
     renderReports();
     detectUserLocation();
   </script>
+<script>
+    // ===== Animasi halus muncul ke atas per elemen teks =====
+    (function () {
+      const SKIP_SELECTOR = '#radarMap, #lightbox, #reportGrid, nav, footer, script, style, noscript';
+      const TARGET_SELECTOR = 'h1, h2, h3, p, label';
 
- <script>
-  // ===== Animasi semua kata: bergantian dari kiri & kanan menuju tengah =====
-  (function () {
-    const SKIP_TAGS = new Set(['SCRIPT','STYLE','NOSCRIPT','SELECT','OPTION','TEXTAREA','SVG','INPUT']);
-    const SKIP_SELECTOR = '#radarMap, #lightbox, #reportGrid, .word';
-    const counters = new Map();
-
-    function wrapTextNode(node) {
-      let host = node.parentElement;
-      if (/(flex|grid)/.test(getComputedStyle(host).display)) {
-        const box = document.createElement('span');
-        node.parentNode.insertBefore(box, node);
-        box.appendChild(node);
-        host = box;
-      }
-      const frag = document.createDocumentFragment();
-      node.textContent.split(/(\s+)/).forEach((part) => {
-        if (!part) return;
-        if (/^\s+$/.test(part)) {
-          frag.appendChild(document.createTextNode(part));
-          return;
-        }
-        const i = counters.get(host) || 0;
-        counters.set(host, i + 1);
-        const w = document.createElement('span');
-        w.className = 'word ' + (i % 2 === 0 ? 'from-left' : 'from-right');
-        w.style.setProperty('--i', Math.min(i, 25));
-        w.textContent = part;
-        frag.appendChild(w);
+      const elements = [...document.querySelectorAll(TARGET_SELECTOR)].filter((el) => {
+        if (el.closest(SKIP_SELECTOR)) return false;
+        if (el.querySelector(TARGET_SELECTOR)) return false;
+        return el.textContent && el.textContent.trim().length > 0;
       });
-      node.parentNode.replaceChild(frag, node);
-    }
 
-    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
-      acceptNode(n) {
-        if (!n.textContent.trim()) return NodeFilter.FILTER_REJECT;
-        const el = n.parentElement;
-        if (!el || SKIP_TAGS.has(el.tagName.toUpperCase()) || el.closest(SKIP_SELECTOR)) {
-          return NodeFilter.FILTER_REJECT;
-        }
-        return NodeFilter.FILTER_ACCEPT;
+      elements.forEach((el, i) => {
+        el.classList.add('reveal-text');
+        el.style.setProperty('--delay', `${((i % 4) * 0.06).toFixed(2)}s`);
+      });
+
+      function showElement(el) {
+        requestAnimationFrame(() => {
+          el.classList.add('is-visible');
+        });
       }
-    });
 
-    const nodes = [];
-    while (walker.nextNode()) nodes.push(walker.currentNode);
-    nodes.forEach(wrapTextNode);
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            showElement(entry.target);
+            io.unobserve(entry.target);
+          }
+        });
+      }, {
+        threshold: 0.05,
+        rootMargin: '0px 0px -10px 0px'
+      });
 
-    const words = [...document.querySelectorAll('.word')];
-    const hosts = new Set(words.map((w) => w.parentElement));
-
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach((e) => {
-        if (e.isIntersecting) {
-          e.target.classList.add('in-view');
-          io.unobserve(e.target);
+      elements.forEach((el) => {
+        const rect = el.getBoundingClientRect();
+        if (rect.top < window.innerHeight && rect.bottom > 0) {
+          showElement(el);
+        } else {
+          io.observe(el);
         }
       });
-    }, { threshold: 0.01 });
-
-    hosts.forEach((h) => {
-      const rect = h.getBoundingClientRect();
-      if (rect.top < window.innerHeight && rect.bottom > 0) {
-        h.classList.add('in-view');
-      } else {
-        io.observe(h);
-      }
-    });
-  })();
-</script>
+    })();
+  </script>
 </body>
 </html>
 </script>
