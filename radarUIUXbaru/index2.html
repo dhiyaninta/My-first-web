@@ -127,17 +127,41 @@
     .report-pin.selesai span { background: #059669; }
     .font-helvetica {
   font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+    .fade-enter {
+  animation: fadeEnter 0.8s ease-out both;
+}
+@keyframes gmapsPulse {
+  0% {
+    transform: scale(0.7);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}
+
+@keyframes fadeEnter {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
   </style>
   <noscript><style>.word{opacity:1!important;animation:none!important}</style></noscript>
 </head>
 
 <body class="antialiased selection:bg-forest selection:text-cream">
-<!--BAG BUAT LOGIN-->
+<!--BAGIAN BUAT LOGINNYA-->
  <div id="authScreen" class="min-h-screen flex items-center justify-center p-4 md:p-8 bg-cream">
     <div class="w-full max-w-5xl bg-white rounded-[2.5rem] border border-forest/15 shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 fade-enter">
       
-      <!-- Panel Kiri: Branding & Logo CivicRadar -->
+      <!-- Panel Kiri: Branding & Logo CivicRadar (nanti ganti logo nya sama yang dinuat nike) -->
       <div class="lg:col-span-5 bg-forest text-cream p-8 md:p-12 flex flex-col justify-between relative overflow-hidden">
         <div class="absolute inset-0 opacity-20 bg-cover bg-center" style="background-image: url('./malang.jpg');"></div>
         <div class="absolute inset-0 bg-gradient-to-b from-forest/80 via-forest/85 to-forest"></div>
@@ -163,7 +187,7 @@
         <!-- Copywriting Editorial -->
         <div class="relative z-10 my-12 lg:my-0">
           <h1 class="editorial-title text-4xl md:text-5xl font-normal leading-[1.12]">
-            SUARA <span class="italic font-bold font-helvetica">warga</span><br />
+            SUARA <span class="italic font-bold font-helvetica" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">warga</span><br />
             UNTUK KOTA YANG TRANSPARAN.
           </h1>
           <p class="mt-4 text-xs md:text-sm text-cream/75 leading-relaxed">
