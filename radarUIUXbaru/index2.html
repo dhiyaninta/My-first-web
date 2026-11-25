@@ -86,10 +86,23 @@
 }
 
 .welcome-brand-name {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 48px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 44px;
   font-weight: 700;
-  letter-spacing: -1px;
+  letter-spacing: -0.5px;
+}
+
+.welcome-copy h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(36px, 5vw, 56px);
+  line-height: 1.15;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+}
+
+.welcome-copy p {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 400;
 }
 
 .welcome-copy {
@@ -98,18 +111,16 @@
 }
 
 .welcome-copy h1 {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: clamp(38px, 6vw, 64px);
-  line-height: 1.1;
-  font-weight: 600;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: clamp(34px, 5vw, 52px);
+  line-height: 1.2;
+  font-weight: 400;
+  letter-spacing: -1.8px;
 }
 
-.welcome-copy p {
-  margin-top: 14px;
-  color: rgba(245, 242, 232, 0.7);
-  font-size: 14px;
-  max-width: 460px;
-  line-height: 1.8;
+.welcome-copy p { 
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 400;
 }
 
 .welcome-button {
@@ -359,18 +370,22 @@
         </svg>
       </div>
 
-      <span class="welcome-brand-name">CivicRadar.</span>
+      <span class="welcome-brand-name ">CivicRadar.</span>
     </div>
 
     <!-- TULISAN SELAMAT DATANG -->
     <div class="welcome-copy">
-      <h1>Selamat Datang<br>di CivicRadar.</h1>
+      <h1>
+        Selamat Datang<br>di CivicRadar.</h1>
 
-      <p>
+      <p class="mt-5 text-sm md:text-base text-cream/75 max-w-xl leading-relaxed">
         Suara warga untuk kota yang transparan.
         Pantau kondisi fasilitas publik dan ikut
         membangun lingkungan yang lebih baik.
       </p>
+       <p class="mt-7 text-xs text-cream/[0.35] max-w-xl leading-relaxed">
+        By Ctrl+A+delete
+       </p>
     </div>
 
     <!-- TOMBOL LANJUTKAN -->
